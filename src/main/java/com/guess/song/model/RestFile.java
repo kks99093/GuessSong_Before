@@ -9,10 +9,7 @@ import lombok.Data;
 @Data
 public class RestFile {
 	
-	private MultipartFile singFile;
+	private MultipartFile songImg;
 	
-	private List<MultipartFile> multiFileList;
-	
-	private List<String> answer;
 
 }

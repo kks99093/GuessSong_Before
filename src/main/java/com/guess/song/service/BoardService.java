@@ -4,11 +4,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
+import com.guess.song.model.RestFile;
 import com.guess.song.model.dto.SongInfoDTO;
 import com.guess.song.model.entity.GameRoom;
 import com.guess.song.model.entity.SongBoard;
@@ -20,6 +24,7 @@ import com.guess.song.model.param.UserInfoParam;
 import com.guess.song.repository.GameRoomRepository;
 import com.guess.song.repository.SongBoardRepository;
 import com.guess.song.repository.SongInfoRepository;
+import com.guess.song.util.Utils;
 
 @Service
 public class BoardService {
@@ -47,17 +52,35 @@ public class BoardService {
 	
 	
 	//게임방 + 목록 등록
-	public void regSong(SongInfoParam songInfoParam) {
+	public void regSong(SongInfoParam songInfoParam, RestFile restFile, HttpServletRequest request) {
 
-		
+		//음악을 담을 게시판 정보 저장
 		SongBoard songBoard = new SongBoard();
 		songBoard.setTitle(songInfoParam.getTitle());
+		String salt = Utils.getSalt();
+		String cryptPw = Utils.getBcryptPw(salt, songInfoParam.getPassword());
+		songBoard.setSalt(salt);
+		songBoard.setPassword(cryptPw);
+		String saveFileNm = Utils.fileUpload(restFile, request);
+		songBoard.setImg(saveFileNm);
 		songBoard = songBoardRep.save(songBoard);
-		
+
+		//음악정보 DB에 저장
 		for(int i = 0; i < songInfoParam.getAnswer().size(); i++) {
 			SongInfo songInfo = new SongInfo();
+			String youtubeUrl =songInfoParam.getYoutubeUrl().get(i);
+			if(youtubeUrl.contains("youtu.be")) {
+				int idx = youtubeUrl.lastIndexOf("/");
+				youtubeUrl = youtubeUrl.substring(idx+1);
+				
+			}else if(youtubeUrl.contains("youtube.com")) {
+				int startIdx = youtubeUrl.indexOf("v=")+2;
+				int endIdx = youtubeUrl.indexOf("&");
+				youtubeUrl = youtubeUrl.substring(startIdx, endIdx);
+			}
+			
 			songInfo.setAnswer(songInfoParam.getAnswer().get(i));
-			songInfo.setYoutubeUrl(songInfoParam.getYoutubeUrl().get(i));
+			songInfo.setYoutubeUrl(youtubeUrl);
 			songInfo.setHint(songInfoParam.getHint().get(i));
 			songInfo.setSongBoard(songBoard);
 			songRep.save(songInfo);

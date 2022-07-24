@@ -2,6 +2,8 @@ package com.guess.song.controller;
 
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import com.guess.song.auth.PrincipalDetailsService;
+import com.guess.song.model.RestFile;
 import com.guess.song.model.dto.SongInfoDTO;
 import com.guess.song.model.entity.GameRoom;
 import com.guess.song.model.entity.SongBoard;
@@ -50,8 +53,10 @@ public class BoardController {
 	}
 	
 	@PostMapping("/proc/regSong")	
-	public String regSong(SongInfoParam songInfoParam) {
-		boardService.regSong(songInfoParam);
+	public String regSong(HttpServletRequest request, SongInfoParam songInfoParam, RestFile restFile) {
+		
+		
+		boardService.regSong(songInfoParam, restFile, request);
 		return "redirect:/board/main";
 	}
 	
@@ -84,7 +89,7 @@ public class BoardController {
 	@GetMapping("/board/gameList")
 	public String gameList(@PageableDefault(sort = {"createTime"}, direction = Direction.DESC, size = 10) Pageable pageable, Model model) {
 		Page<GameRoom> gameRoomList =  boardService.selGameRoom(pageable);
-		
+		model.addAttribute("startIdx", (int)(gameRoomList.getPageable().getPageNumber()/10)*10);
 		model.addAttribute("gameRoomList", gameRoomList);
 	
 		return "/board/gameList";

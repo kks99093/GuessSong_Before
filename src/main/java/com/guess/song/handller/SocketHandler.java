@@ -162,7 +162,7 @@ public class SocketHandler extends TextWebSocketHandler{
 		//방에 사람이 0명이면 게임방 삭제
 		userList = (HashMap<String, HashMap<String, Object>>) roomList.get(roomNumber).get("userList");
 		if(userList.size() < 1 && !roomNumber.equals("")) {
-			boardService.delGameRoom(roomNumber);
+			//boardService.delGameRoom(roomNumber);
 		}
 
 

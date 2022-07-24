@@ -214,6 +214,15 @@ button {
 			</c:forEach>
 		</tbody>
 	</table>
+	<div class="page">
+		<ul>
+			<li onclick="pageMove(${gameRoomList.pageable.pageNumber-1})">이전</li>	
+			<c:forEach begin="${startIdx+1}" end="${gameRoomList.totalPages > startIdx+10 ? startIdx+10 : gameRoomList.totalPages}" varStatus="status">
+				<li onclick="pageMove(${status.index-1})">${status.index }</li>
+			</c:forEach>
+			<li onclick="pageMove(${gameRoomList.pageable.pageNumber+1})">다음></li>
+		</ul>
+	</div>
 </div>
 
 <div id="popup" class="hide">
@@ -284,6 +293,10 @@ button {
 		popup.classList.add('has-filter');
 		popup.classList.remove('hide');
 		roomNumber = roomPk;
+	}
+	
+	function pageMove(pageNumber){
+		location.href = "/board/gameList?page="+pageNumber;
 	}
 	
 

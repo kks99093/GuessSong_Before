@@ -50,7 +50,14 @@ function onYouTubeIframeAPIReady(videoIdParam) {
     height: '300',
     width: '300',
     videoId: videoIdParam, //여기에 비디오 ID를 삽입한다. 
-    playerVars: { 'autoplay': 1}
+    playerVars: { 
+    	'autoplay': 1,
+    	start : 10,
+    	end : 15
+    	}
+  	,events : {
+  		'onStateChange': onPlayerStateChange // 구간반복을 위해 추가해줌
+  	}
 //만약에 유튜브 공유 주소가 https://www.youtube.com/watch?v=Wac9LIURW1I라면 v=뒤의 값을 넣는다
   });
   
@@ -71,6 +78,13 @@ function nextVideo(videoIdParam){
 	$('#player').remove();
 	$('#youtubePlayer').append('<div id="player"></div>')
 	onYouTubeIframeAPIReady(videoIdParam)
+}
+
+//구간 반복 재생
+function onPlayerStateChange(event) {
+	if (event.data == YT.PlayerState.ENDED) {
+		player.seekTo(10); //여기에 시작시간을 넣어주면 되네
+	}
 }
 
 </script>

@@ -16,7 +16,7 @@ import lombok.Data;
 
 @Data
 @Entity
-public class SongBoard {
+public class SongBoard2 {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
