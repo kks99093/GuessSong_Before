@@ -24,7 +24,6 @@ table{
   background-color: rgba(255,255,255,0.3);
  }
 .tbl-content{
-  height:300px;
   overflow-x:auto;
   margin-top: 0px;
   border: 1px solid rgba(255,255,255,0.3);
@@ -53,7 +52,7 @@ td{
 @import url(https://fonts.googleapis.com/css?family=Roboto:400,500,300,700);
 body{
   background: -webkit-linear-gradient(left, #25c481, #25b7c4);
-  background: linear-gradient(to right, #25c481, #25b7c4);
+  background: linear-gradient(to right, #05b7c4, #A5b7c4);
   font-family: 'Roboto', sans-serif;
 }
 section{

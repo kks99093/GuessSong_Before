@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
@@ -55,29 +54,18 @@ public class SocketHandler extends TextWebSocketHandler{
 		}
 		
 		
-		// 내 정보(sessionId)를 클라이언트로 넘겨서 저장함(이후에 보내는 메세지가 누군지 구분하기 위함)
-		JSONObject jsonObject = new JSONObject();
-		jsonObject.put("type", "sessionId");
-		jsonObject.put("sessionId", session.getId());
-		session.sendMessage(new TextMessage(jsonObject.toString()));
-		
+
 		
 		//방 입장시
 		if(flag == true) {
 			//본인한테 보낼거 : 다른사람의 sessionId와 닉네임 ==> userList를 보내면 될듯
 			HashMap<String, HashMap<String, Object>> userList = (HashMap<String, HashMap<String, Object>>) roomList.get(roomNumber).get("userList");
-			
 			//본인한테 이미 접속해있던 userList를 보냄
 			sendUserList(session, userList);
-			
 			//이미 입장해 있는 다른 유저에게 본인 닉네임과 sessionId를 보냄 (메세지를 보낼때는 해당유저의 session을 가져와서 .sendMessage 메서드로 보냄)
 			sendMyInfo(session, userList, userName);
-			
-			
-			
 			int songNumber = 0; //이걸로 방 생성인지 참가인지 구분
 			joinRoom(session, roomNumber ,songNumber, userName); //해당방의 userList에 입장한사람의 정보를 추가
-
 			
 		}else {
 			//방 생성시 Map에다가 유저정보를 넣는처리 (songNumber 써서 메서드 하나로 생성 참가 다 처리할 수 있을듯?) 
@@ -86,6 +74,15 @@ public class SocketHandler extends TextWebSocketHandler{
 			joinRoom(session, roomNumber ,songNumber, userName);
 
 		}
+		
+		// 내 정보(sessionId)를 클라이언트로 넘겨서 저장함(이후에 보내는 메세지가 누군지 구분하기 위함)
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("type", "sessionId");
+		jsonObject.put("sessionId", session.getId());
+		List<SongInfoDTO> songInfoList = (List<SongInfoDTO>)roomList.get(roomNumber).get("songList");
+		jsonObject.put("youtubeUrl", songInfoList.get(0).getYoutubeUrl());
+		session.sendMessage(new TextMessage(jsonObject.toString()));
+
 	}
 	
 	
@@ -98,23 +95,43 @@ public class SocketHandler extends TextWebSocketHandler{
 		JSONObject jsonObject = Utils.JsonToObjectParser(message.getPayload());
 		String roomNumber = (String)jsonObject.get("roomNumber");
 		String type = (String)jsonObject.get("type");
+		String youtubeUrl = "";
 		HashMap<String, Object> roomInfo = roomList.get(roomNumber);
 		
-		//게임 시작, 다음 노래 눌럿을경우
-		if(type.equals("gameStart") || type.equals("nextSong")) {
-			String songInfo = startAndNextSong(roomInfo, type);
-			jsonObject.put("songInfo", songInfo);
-		}
-			
-		//게임 시작후 보낸 메세지가 정답일 경우
-		if(type.equals("message") && roomInfo.get("currentSong") != null) { //roomInfo.get("currentSong")가 null이 아니란건 게임이 시작됐단뜻
-			String userMsg = ((String)jsonObject.get("msg")).replaceAll("\\s", "");
-			int answerChk = answerChk(roomInfo, userMsg);
-			jsonObject.put("answerChk", answerChk);
-		}
 		
-			
 		
+		switch(type) {
+			case "gameStart" :
+				roomInfo.put("currentSong", 0);
+				break;
+			case "skipSong" :
+				int skipChk = skipSong(roomInfo);
+				if(skipChk == 1) {
+					youtubeUrl = nextYoutubeUrl(roomInfo);
+					jsonObject.put("youtubeUrl", youtubeUrl);
+				}else if(skipChk == 2){
+					jsonObject.put("skipChk", skipChk);
+				}else {
+					int skipNum = (int)roomInfo.get("skipNum");
+					jsonObject.put("skipNum", skipNum);
+				}
+				break;
+			case "ready":
+				int readyChk = userReady(roomInfo);
+				jsonObject.put("readyChk", readyChk);
+				break;
+			case "message" :
+				if(roomInfo.get("currentSong") != null) {
+					String userMsg = ((String)jsonObject.get("msg")).replaceAll("\\s", "");
+					int answerChk = answerChk(roomInfo, userMsg);
+					String nextYoutubeUrl = nextYoutubeUrl(roomInfo);
+					jsonObject.put("answerChk", answerChk);
+					jsonObject.put("youtubeUrl", nextYoutubeUrl);
+				}
+				break;
+			
+		}
+
 		HashMap<String, HashMap<String, Object>> userList = (HashMap<String, HashMap<String, Object>>) roomList.get(roomNumber).get("userList");
 			
 		//userList를 돌며 session을 가져와서 메세지를 보냄
@@ -196,6 +213,8 @@ public class SocketHandler extends TextWebSocketHandler{
 			roomList.put(roomNumber, roomInfo); //위의 roomInfo를 roomList에 추가
 		}		
 	}
+	
+	
 	@SuppressWarnings("unchecked")
 	public void sendUserList(WebSocketSession session, HashMap<String, HashMap<String, Object> >userListParam) {
 		List<HashMap<String, String>> userList = new ArrayList<>();
@@ -243,21 +262,67 @@ public class SocketHandler extends TextWebSocketHandler{
 	}
 	
 	
-	//노래 시작 or 다음 노래 눌럿을때 로직
+	
 	@SuppressWarnings("unchecked")
-	public String startAndNextSong(HashMap<String, Object> roomInfo, String type) {
-		String songInfo = "";
-		if(roomInfo.get("currentSong") == null) {
-			roomInfo.put("currentSong", 0);
+	public int skipSong(HashMap<String, Object> roomInfo) {
+		int skipChk = 0;
+		
+		if("".equals(nextYoutubeUrl(roomInfo))) {
+			skipChk = 2; //마지막 곡이었음
 		}else {
-			int temp = (int)roomInfo.get("currentSong");
-			roomInfo.put("currentSong", temp+1);
+			HashMap<String, HashMap<String, Object>> userList = (HashMap<String, HashMap<String, Object>>) roomInfo.get("userList");
+			if(roomInfo.get("skipNum") == null) {
+				roomInfo.put("skipNum", 1);
+			}else {
+				int skipNum = (int)roomInfo.get("skipNum");
+				roomInfo.put("skipNum", skipNum+1);
+			}
+			int skipNum = (int)roomInfo.get("skipNum");
+			int userListNum = userList.size();
+			if(skipNum>(userListNum/2)) {
+				roomInfo.remove("skipNum");
+				skipChk = 1;
+			}
 		}
-		int currentSong = (int)roomInfo.get("currentSong");
-		List<SongInfoDTO> songList = (List<SongInfoDTO>)roomInfo.get("songList");				
-		songInfo = songList.get(currentSong).getYoutubeUrl();
-		return songInfo;
+		
+		return skipChk;
 	}
+	
+	@SuppressWarnings("unchecked")
+	public String nextYoutubeUrl(HashMap<String, Object> roomInfo) {
+		String youtubeUrl = "";
+		int currentSong = (int)roomInfo.get("currentSong");
+		List<SongInfoDTO> songList = (List<SongInfoDTO>)roomInfo.get("songList");
+		if(songList.size() > (currentSong+1)) {
+			youtubeUrl = songList.get(currentSong+1).getYoutubeUrl();
+		}
+		return youtubeUrl;
+		
+	}
+	
+	@SuppressWarnings("unchecked")
+	public int userReady(HashMap<String, Object> roomInfo) {
+		int readyChk = 0;
+		HashMap<String, HashMap<String, Object>> userList = (HashMap<String, HashMap<String, Object>>) roomInfo.get("userList");
+		if(roomInfo.get("readyUser") == null) {
+			roomInfo.put("readyUser", 1);
+		}else {
+			int currentReadyNum = (int)roomInfo.get("readyUser");
+			roomInfo.put("readyUser", currentReadyNum+1);
+		}
+		
+		int readyNum = (int)roomInfo.get("readyUser");
+		int userListNum = userList.size();
+
+		if(readyNum == userListNum) {
+			int currentSong = (int)roomInfo.get("currentSong");
+			roomInfo.put("currentSong", currentSong+1);
+			roomInfo.remove("readyUser");
+			readyChk = 1;
+		}
+		return readyChk;
+	}
+	
 	
 	
 	//게임 시작한 후 보낸 메세지가 정답인지 확인하는 로직
