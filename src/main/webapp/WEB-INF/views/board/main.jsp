@@ -7,83 +7,9 @@
 <html>
 <head>
 <script src="/js/jquery-3.6.0.min.js"></script>
+<link rel="stylesheet" href="/css/main.css">
 <meta charset="UTF-8">
-<title>Insert title here</title>
-<style>
-body{
-	width: 100%;
-	height: 100%;
-	background-color: #F2F2F2;
-}
-.container{
-	width: 100%;
-	height: 100%;
-	
-}
-
-.left_div{
-	display: flex;
-	background-color: white;
-}
-
-.left_border{
-	margin : 10px;
-	padding : 10px;
-	border: 1px solid black;
-    background: #85DCFF;
-    color: white;
-}
-
-.left_span{
-	font-size: 25px;
-	font-weight: 500;
-
-}
-.rigth_div{
-	display: flex;
-    flex-direction: column;
-}
-
-.rigth_div .search_div{
-	padding: 10px;
-    margin: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size : 20px;
-}
-
-#searchText{
-	margin: 10px;
-    min-width: 500px;
-    font-size : 20px;
-}
-
-#search_span{
-    margin: 10px;
-    border: 1px solid black;
-    padding: 0 10px;
-    background: #85DCFF;
-    color : white;
-}
-
-.songBoardList_div{
-    padding: 10px;
-    margin: 10px;
-    display: flex;
-    flex-wrap: wrap;
-}
-
-.songBoard_div{
-	padding: 10xp;
-	margin: 10px;
-	background-color: white;
-}
-
-#board_title_div{
-	margin:10px;
-}
-</style>
+<title>노래 맞추기</title>
 </head>
 <body>
 <div class="container">
@@ -98,11 +24,12 @@ body{
 	
 	<div class="rigth_div">
 		<div class="search_div">
-			<input type="text" placeholder="검색" name="searchText" id="searchText"><span id="search_span">검색</span>
+			<input type="text" placeholder="노래 검색" name="searchText" id="searchText"><span id="search_span">검색</span>
 		</div>
 		<div class="songBoardList_div">
 			<c:forEach var="songBoard" items="${songBoardList.content }">
-				<div class="songBoard_div" id="songBoard_div" onclick="moveBoard(${songBoard.boardPk})">
+			<div class="songBoard_div">
+				<div class="songBoard_img_div" id="songBoard_img_div" onclick="moveBoard(${songBoard.boardPk})">
 					<div id="board_img_div">
 						<c:choose>
 							<c:when test="${songBoard.img != null }">
@@ -113,10 +40,16 @@ body{
 							</c:otherwise>
 						</c:choose>
 					</div>
-					<div id="board_title_div">
-							<span class="board_title_span">${songBoard.title}</span>
-					</div>
 				</div>
+				<div class="board_title_div">
+					<span class="board_title_span">${songBoard.title}</span>
+					<span class="drop_menu" param1="${songBoard.boardPk }">...</span>
+				</div>
+				<div class="drop_menu_board" id="drop_menu_board${songBoard.boardPk}">
+					<div>수정</div>
+					<div>삭제</div>
+				</div>
+			</div>
 			</c:forEach>
 		</div>
 	</div>
@@ -124,6 +57,20 @@ body{
 
 <script>
 	$(document).ready(function(){
+		
+		$('.drop_menu').click(function(){
+			let boardPk = $(this).attr("param1")
+			let displayStatus = $('#drop_menu_board'+boardPk).css('display')
+			if(displayStatus === 'none'){
+				$('#drop_menu_board'+boardPk).css('display', 'block')
+			}else{
+				$('#drop_menu_board'+boardPk).css('display', 'none')
+			}
+			
+			
+			
+		})
+		
 		$('#joinMultiGame').click(function(){
 			location.href = "/board/gameList";
 		})
