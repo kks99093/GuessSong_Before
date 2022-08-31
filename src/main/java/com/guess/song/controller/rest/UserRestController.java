@@ -28,7 +28,6 @@ public class UserRestController {
 		for(String key : userList.keySet()) {
 			System.out.println(userList.get(key));
 			String userName = (String) userList.get(key).get("userName");
-//			String userNameDec = URLDecoder.decode(userNameEnc, "UTF-8");
 			if(userNameParam.equals(userName)) {
 				result = 1;
 				break;

@@ -4,101 +4,9 @@
 <html>
 <head>
 <script src="/js/jquery-3.6.0.min.js"></script>
+<link rel="stylesheet" href="/css/regSong.css">
 <meta charset="UTF-8">
-<title>Insert title here</title>
-<style>
-
-h1{
-  font-size: 30px;
-  color: #fff;
-  text-transform: uppercase;
-  font-weight: 300;
-  text-align: center;
-  margin-bottom: 15px;
-}
-table{
-  width:100%;
-  table-layout: fixed;
-}
-.tbl-header{
-  background-color: rgba(255,255,255,0.3);
- }
-.tbl-content{
-  overflow-x:auto;
-  margin-top: 0px;
-  border: 1px solid rgba(255,255,255,0.3);
-}
-th{
-  padding: 20px 15px;
-  text-align: left;
-  font-weight: 500;
-  font-size: 12px;
-  color: #fff;
-  text-transform: uppercase;
-}
-td{
-  padding: 15px;
-  text-align: left;
-  vertical-align:middle;
-  font-weight: 300;
-  font-size: 12px;
-  color: #fff;
-  border-bottom: solid 1px rgba(255,255,255,0.1);
-}
-
-
-/* demo styles */
-
-@import url(https://fonts.googleapis.com/css?family=Roboto:400,500,300,700);
-body{
-  background: -webkit-linear-gradient(left, #25c481, #25b7c4);
-  background: linear-gradient(to right, #05b7c4, #A5b7c4);
-  font-family: 'Roboto', sans-serif;
-}
-section{
-  margin: 50px;
-}
-
-
-/* follow me template */
-.made-with-love {
-  margin-top: 40px;
-  padding: 10px;
-  clear: left;
-  text-align: center;
-  font-size: 10px;
-  font-family: arial;
-  color: #fff;
-}
-.made-with-love i {
-  font-style: normal;
-  color: #F50057;
-  font-size: 14px;
-  position: relative;
-  top: 2px;
-}
-.made-with-love a {
-  color: #fff;
-  text-decoration: none;
-}
-.made-with-love a:hover {
-  text-decoration: underline;
-}
-
-
-/* for custom scrollbar for webkit browser*/
-
-::-webkit-scrollbar {
-    width: 6px;
-} 
-::-webkit-scrollbar-track {
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
-} 
-::-webkit-scrollbar-thumb {
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
-}
-
-</style>
+<title>노래 등록하기</title>
 </head>
 <body>
 
@@ -148,26 +56,22 @@ section{
           <td><input type="text" placeholder="유튜브 주소" name="youtubeUrl" class="youtubeUrl"></td>
           <td><input type="text" placeholder="정답" name="answer" class="answer"> </td>
           <td><input type="text" placeholder="힌트" name="hint" class="hint"></td>
-          <td><button type="button" onclick="removeTr(1)">X</button></td>
+          <td><button class="remove_btn" type="button" onclick="removeTr(1)">X</button></td>
         </tr>
       </tbody>
     </table>
   </div>
+  <button class="submit_btn">등록</button>
   </form>  
 </section>
-
-
-	
-	
 </body>
-<button onclick="submitChk()">테스트</button>
 <script>
 	let trNumber = 1;
 	$(document).ready(function(){
 		$('#add_songList_btn').click(function(){
 			trNumber++
 			$('#songList_tbody').append('<tr id="songInfoTr'+trNumber+'"></tr>');
-			$('#songInfoTr'+trNumber).append('<td><input type="text" placeholder="유튜브 주소" name="youtubeUrl" class="youtubeUrl"></td> <td><input type="text" placeholder="정답" name="answer" class="answer"> </td> <td><input type="text" placeholder="힌트" name="hint" class="hint"></td><td><button type="button" onclick="removeTr('+trNumber+')">X</button></td>')
+			$('#songInfoTr'+trNumber).append('<td><input type="text" placeholder="유튜브 주소" name="youtubeUrl" class="youtubeUrl"></td> <td><input type="text" placeholder="정답" name="answer" class="answer"> </td> <td><input type="text" placeholder="힌트" name="hint" class="hint"></td><td><button class="remove_btn" type="button" onclick="removeTr('+trNumber+')">X</button></td>')
 		})
 	})
 	

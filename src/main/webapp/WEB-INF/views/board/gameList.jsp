@@ -209,7 +209,6 @@ button {
 				<tr onclick="showPopup(${gameRoom.roomPk})">
 					<td class="text-left">${gameRoom.title } 타이틀</td>
 					<td class="text-left">${gameRoom.reader } 이름</td>
-					<td class="text-left">${gameRoom.songBoard.title} 노래제목</td>
 				</tr>
 			</c:forEach>
 		</tbody>

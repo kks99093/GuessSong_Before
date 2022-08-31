@@ -29,8 +29,6 @@ public class SongInfo {
 	
 	private String hint;
 	
-	private String songImg;
-	
 	@ManyToOne(fetch = FetchType.LAZY)
 	private SongBoard songBoard;
 	

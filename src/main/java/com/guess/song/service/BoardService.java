@@ -38,18 +38,7 @@ public class BoardService {
 	@Autowired
 	private GameRoomRepository gameRoomRep;
 	
-//	public int regSong(HttpServletRequest request, RestFile restFile) {
-//		String rPath = request.getServletContext().getRealPath("/");
-//		String path = rPath + "upload/song/";
-//		List<SongInfo> songList = FileUtils.creatFile(path, restFile);
-//		for(int i = 0; i < songList.size(); i++) {
-//			System.out.println(" 정답 : " + songList.get(i).getAnswer() + " , 파일이름 : " + songList.get(i).getSongNm());
-//			songRep.save(songList.get(i));
-//		}
-//		
-//		return 0;
-//	}
-	
+
 	
 	//게임방 + 목록 등록
 	public void regSong(SongInfoParam songInfoParam, RestFile restFile, HttpServletRequest request) {
@@ -120,9 +109,8 @@ public class BoardService {
 		if(gameRoomParam.getCreateRoom() == 1) {
 			//방이 없을경우 방 생성
 			GameRoom gameRoom = new GameRoom();
-			SongBoard songBoard = songBoardRep.findByBoardPk(songBoardParam.getBoardPk());
 			gameRoom.setTitle(gameRoomParam.getTitle());
-			gameRoom.setSongBoard(songBoard);
+			gameRoom.setBoardPk(songBoardParam.getBoardPk());
 			gameRoom.setReader(userInfoParam.getUserName());
 			if(gameRoomParam.getPassword() != null) {
 				gameRoom.setPassword(gameRoomParam.getPassword());
@@ -150,6 +138,15 @@ public class BoardService {
 		int roomNumber = Integer.parseInt(roomNumberParam);
 		GameRoom gameRoom = gameRoomRep.findByRoomPk(roomNumber);
 		gameRoomRep.delete(gameRoom);
+	}
+	
+	public void delSongBoard(SongBoardParam songBoardParam) {
+		SongBoard songBoard = songBoardRep.findByBoardPk(songBoardParam.getBoardPk());
+		List<SongInfo> songInfoList = songRep.findByBoardPk(songBoard.getBoardPk());
+		for(SongInfo songInfo : songInfoList) {
+			songRep.delete(songInfo);
+		}
+		songBoardRep.delete(songBoard);
 	}
 
 }

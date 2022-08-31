@@ -46,8 +46,8 @@
 					<span class="drop_menu" param1="${songBoard.boardPk }">...</span>
 				</div>
 				<div class="drop_menu_board" id="drop_menu_board${songBoard.boardPk}">
-					<div>수정</div>
-					<div>삭제</div>
+					<div class="update_board_div" param1="${songBoard.boardPk }">수정</div>
+					<div class="delete_board_div" param1="${songBoard.boardPk }">삭제</div>
 				</div>
 			</div>
 			</c:forEach>
@@ -66,9 +66,6 @@
 			}else{
 				$('#drop_menu_board'+boardPk).css('display', 'none')
 			}
-			
-			
-			
 		})
 		
 		$('#joinMultiGame').click(function(){
@@ -77,6 +74,37 @@
 		
 		$('#regSong_btn').click(function(){
 			location.href = "/board/regSong";
+		})
+		
+		$('.update_board_div').click(function(){
+			let boardPk = $(this).attr("param1")
+			console.log(boardPk)
+		})
+		
+		$('.delete_board_div').click(function(){
+			if(confirm('삭제 하시겠습니까?')){
+				let boardPk = $(this).attr("param1")
+				data = {
+					boardPk : boardPk
+				}
+				
+				$.ajax({
+					type: "POST",
+					url : "/rest/boardDel",
+					data : JSON.stringify(data),
+					contentType : "application/json; charset=utf-8",
+					dataType: "json"
+				}).done(function(resp){
+					location.reload();
+				})
+					
+				return
+			}else{
+				console.log('2')
+				return
+			}
+			
+			
 			
 		})
 		

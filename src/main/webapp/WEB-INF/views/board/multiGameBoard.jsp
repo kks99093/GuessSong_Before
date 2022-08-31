@@ -139,7 +139,7 @@
 		<input type="hidden" value="${userInfo.userName }" id="userName">
 		<input type="hidden" value="" id="sessionId">
 		<input type="hidden" value="${gameRoom.roomPk }" id="roomNumber">
-		<input type="hidden" value="${gameRoom.songBoard.boardPk }" id="songBoardPk">		
+		<input type="hidden" value="${gameRoom.boardPk }" id="songBoardPk">		
 		
 		
 <script>
