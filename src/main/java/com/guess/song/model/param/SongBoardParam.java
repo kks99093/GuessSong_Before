@@ -14,6 +14,8 @@ public class SongBoardParam {
 	
 	private String title;
 	
+	private String password;
+	
 	private String Img;
 	
 	private String userName;

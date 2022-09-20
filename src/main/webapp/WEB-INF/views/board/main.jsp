@@ -69,50 +69,96 @@
 		})
 		
 		$('#joinMultiGame').click(function(){
-			location.href = "/board/gameList";
+			
+				location.href = "/board/gameList";	
+			
+			
 		})
 		
 		$('#regSong_btn').click(function(){
-			location.href = "/board/regSong";
+				location.href = "/board/regSong";
 		})
 		
+		// 게시판 수정
 		$('.update_board_div').click(function(){
-			let boardPk = $(this).attr("param1")
-			console.log(boardPk)
+			let boardPk = $(this).attr("param1");
+			let password = prompt('비밀번호');
+			
+			let data = {
+					boardPk : boardPk,
+					password : password
+			}
+			
+			$.ajax({
+				type : "POST",
+				url : "/rest/boardPassChk",
+				data : JSON.stringify(data),
+				contentType : "application/json; charset=utf-8",
+				dataType : "json"
+			}).done(function(resp){
+				if(resp == 1){
+					location.href = '/board/regSong?boardPk='+boardPk;
+				}else{
+					alert('비밀번호가 틀렸습니다.')
+				}
+			})
 		})
 		
 		$('.delete_board_div').click(function(){
-			if(confirm('삭제 하시겠습니까?')){
-				let boardPk = $(this).attr("param1")
-				data = {
-					boardPk : boardPk
-				}
-				
-				$.ajax({
-					type: "POST",
-					url : "/rest/boardDel",
-					data : JSON.stringify(data),
-					contentType : "application/json; charset=utf-8",
-					dataType: "json"
-				}).done(function(resp){
-					location.reload();
-				})
-					
-				return
-			}else{
-				console.log('2')
-				return
+			let boardPk = $(this).attr("param1");
+			let password = prompt('비밀번호');
+			let data = {
+					boardPk : boardPk,
+					password : password
 			}
 			
 			
+			$.ajax({
+				type : "POST",
+				url : "/rest/boardPassChk",
+				data : JSON.stringify(data),
+				contentType : "application/json; charset=utf-8",
+				dataType : "json"
+			}).done(function(resp){
+				if(resp == 1){
+					if(confirm('정말 삭제 하시겠습니까?')){
+						let boardPk = $(this).attr("param1")
+						$.ajax({
+							type: "POST",
+							url : "/rest/boardDel",
+							data : JSON.stringify(data),
+							contentType : "application/json; charset=utf-8",
+							dataType: "json"
+						}).done(function(delResp){
+							if(delResp == 1){
+								location.reload();	
+							}else{
+								alert('삭제 할 수 없습니다. 관리자에게 문의 하세요');
+							}
+							
+						})
+					}
+				}else{
+					alert('비밀번호가 틀렸습니다.')
+				}
+			})
+			
+			
+
 			
 		})
 		
 		
+		
+		
+		
 	})
+	
+	
 	function moveBoard(boardPk){
 		location.href = "/board/modeSel?boardPk="+boardPk;
 	}
+
 	
 
 </script>

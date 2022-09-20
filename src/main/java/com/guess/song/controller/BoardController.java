@@ -47,14 +47,16 @@ public class BoardController {
 	}
 
 	@GetMapping("/board/regSong")
-	public String regSong() {
-		
+	public String regSong(SongBoardParam songBoardParam, Model model) {
+		if(songBoardParam.getBoardPk() != null) {
+			SongBoard songBoard = boardService.selSongBoard(songBoardParam.getBoardPk());
+			model.addAttribute("songBoard", songBoard);
+		}
 		return "/board/regSong";
 	}
 	
 	@PostMapping("/proc/regSong")	
 	public String regSong(HttpServletRequest request, SongInfoParam songInfoParam, RestFile restFile) {
-		
 		
 		boardService.regSong(songInfoParam, restFile, request);
 		return "redirect:/board/main";

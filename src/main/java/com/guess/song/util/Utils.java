@@ -38,6 +38,25 @@ public class Utils {
 		
 		return saveFileNm;
 	}
+	
+	
+	public static int fileDelete(String imgName, String path) {
+		int result = 0;
+		File file = new File(path + imgName);
+		
+		if(file.exists()) {
+			if(file.delete()) {
+				System.out.println("파일 삭제 완료");
+				result = 1;
+			}else {
+				System.out.println("파일 삭제 실패");
+			}
+		}
+		return result;
+		
+	}
+	
+	
 
 	public static JSONObject JsonToObjectParser(String jsonStr) {
 		JSONParser parser = new JSONParser();
@@ -49,6 +68,8 @@ public class Utils {
 		}
 		return obj;
 	}
+	
+
 	
 	public static String getSalt() {
 		return BCrypt.gensalt();

@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
 import com.guess.song.model.RestFile;
@@ -45,15 +44,38 @@ public class BoardService {
 
 		//음악을 담을 게시판 정보 저장
 		SongBoard songBoard = new SongBoard();
+		if(songInfoParam.getBoardPk() == null) {
+			
+			String saveFileNm = Utils.fileUpload(restFile, request);
+			songBoard.setImg(saveFileNm);
+		}else {
+			songBoard = songBoardRep.findByBoardPk(songInfoParam.getBoardPk());
+			String fileName = restFile.getSongImg().getOriginalFilename();
+			if(!fileName.equals("")) {
+				if(!songBoard.getImg().equals("")) {
+					String imgName = songBoard.getImg();
+					String path = request.getServletContext().getRealPath("/") + "upload/songBoard/";
+					Utils.fileDelete(imgName, path);
+				}
+				String saveFileNm = Utils.fileUpload(restFile, request);
+				songBoard.setImg(saveFileNm);
+			}
+			
+			// 노래목록이 몇십개가 되는데 그걸 일일이 수정하는걸 말이 안되는거 같고
+			// 그냥 다 지웠다가 다시 저장하는게 맞을거같은데 어떠려나
+			delSong(songBoard.getBoardPk());
+		}
 		songBoard.setTitle(songInfoParam.getTitle());
 		String salt = Utils.getSalt();
 		String cryptPw = Utils.getBcryptPw(salt, songInfoParam.getPassword());
 		songBoard.setSalt(salt);
 		songBoard.setPassword(cryptPw);
-		String saveFileNm = Utils.fileUpload(restFile, request);
-		songBoard.setImg(saveFileNm);
 		songBoard = songBoardRep.save(songBoard);
+		insSong(songInfoParam, songBoard);
 
+	}
+	
+	public void insSong(SongInfoParam songInfoParam, SongBoard songBoard) {
 		//음악정보 DB에 저장
 		for(int i = 0; i < songInfoParam.getAnswer().size(); i++) {
 			SongInfo songInfo = new SongInfo();
@@ -81,6 +103,13 @@ public class BoardService {
 		Page<SongBoard> songBoardList = songBoardRep.findAll(pageable);		
 		return songBoardList;
 	}
+	
+	public SongBoard selSongBoard(int songBoardPk) {
+		SongBoard songBoard = songBoardRep.findByBoardPk(songBoardPk);
+		return songBoard;
+		
+	}
+	
 	
 	public List<SongInfoDTO> findSongList(int songBoardPk){
 
@@ -140,13 +169,51 @@ public class BoardService {
 		gameRoomRep.delete(gameRoom);
 	}
 	
-	public void delSongBoard(SongBoardParam songBoardParam) {
+	public int delSongBoard(SongBoardParam songBoardParam) {
+		int result = 0;
 		SongBoard songBoard = songBoardRep.findByBoardPk(songBoardParam.getBoardPk());
-		List<SongInfo> songInfoList = songRep.findByBoardPk(songBoard.getBoardPk());
-		for(SongInfo songInfo : songInfoList) {
-			songRep.delete(songInfo);
+		try {
+			if(delSong(songBoard.getBoardPk()) == 1) {
+				songBoardRep.delete(songBoard);
+				result = 1;
+			}
+		}catch (Exception e) {
+			e.printStackTrace();
+			result = 0;
+			
 		}
-		songBoardRep.delete(songBoard);
+		return result;
+		
+	}
+	
+	public int delSong(int songBoardPk) {
+		int result = 0;
+		List<SongInfo> songInfoList = songRep.findByBoardPk(songBoardPk);
+		if(songInfoList != null) {
+			try {
+				for(SongInfo songInfo : songInfoList) {
+					songRep.delete(songInfo);
+				}
+				result = 1;
+			}catch(Exception e) {
+				e.printStackTrace();
+				result = 0;
+			}
+		}
+		
+		return result;
+	}
+	
+	//비밀번호 체크
+	public int boardPassChk(SongBoardParam songBoardParam) {
+		int result = 0;
+		SongBoard songBoard = songBoardRep.findByBoardPk(songBoardParam.getBoardPk());
+		
+		String crypPw = Utils.getBcryptPw(songBoard.getSalt(), songBoardParam.getPassword());
+		if(crypPw.equals(songBoard.getPassword())) {
+			result = 1;
+		}
+		return result;
 	}
 
 }

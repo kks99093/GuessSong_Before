@@ -28,7 +28,7 @@ public class SongBoard {
 	
 	private String salt;
 	
-	private String Img;
+	private String img;
 	
 	@OneToMany(mappedBy = "songBoard")
 	private List<SongInfo> songInfoList;

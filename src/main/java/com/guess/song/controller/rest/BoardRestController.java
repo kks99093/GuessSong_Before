@@ -15,8 +15,16 @@ public class BoardRestController {
 	private BoardService boardService;
 	
 	@PostMapping("/rest/boardDel")
-	public void boardDel(@RequestBody SongBoardParam songBoardParam) {
-		boardService.delSongBoard(songBoardParam);
+	public int boardDel(@RequestBody SongBoardParam songBoardParam) {
+		int result = boardService.delSongBoard(songBoardParam);
+		return result;
+		
+	}
+	
+	@PostMapping("/rest/boardPassChk")
+	public int boardPassChk(@RequestBody SongBoardParam songBoardParam) {
+		int result = boardService.boardPassChk(songBoardParam);
+		return result;
 		
 	}
 
