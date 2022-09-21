@@ -213,7 +213,7 @@ button {
 			</c:forEach>
 		</tbody>
 	</table>
-	<div class="page">
+	<div class="page_div">
 		<ul>
 			<li onclick="pageMove(${gameRoomList.pageable.pageNumber-1})">이전</li>	
 			<c:forEach begin="${startIdx+1}" end="${gameRoomList.totalPages > startIdx+10 ? startIdx+10 : gameRoomList.totalPages}" varStatus="status">

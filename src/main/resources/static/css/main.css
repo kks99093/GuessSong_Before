@@ -134,3 +134,32 @@ body{
 	background-color : #05DCFF;
 }
 
+.board_title_span:hover{
+	cursor : pointer;
+	font-weight: bold;
+}
+
+#songBoard_img_div:hover{
+	cursor : pointer;
+}
+.page_div ul{
+	text-align:center;
+	list-style : none;
+}
+.page_div ul li{
+	display : inline-block;
+	margin : 10px;
+}
+
+.page_div ul li:hover{
+	font-weight:bold;
+	cursor : pointer;
+}
+
+.disable_evt{
+	pointer-events : none;
+	opacity: 0.65;
+}
+.disable_cursor{
+	cursor : default;
+}

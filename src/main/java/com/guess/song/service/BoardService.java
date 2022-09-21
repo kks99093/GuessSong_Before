@@ -99,9 +99,18 @@ public class BoardService {
 	}
 	
 	//방목록 불러오기
-	public Page<SongBoard> selSongBoardList(Pageable pageable){
-		Page<SongBoard> songBoardList = songBoardRep.findAll(pageable);		
-		return songBoardList;
+	public Page<SongBoard> selSongBoardList(Pageable pageable, String searchText){
+		
+		if(searchText == null || searchText.equals("")) {
+			Page<SongBoard> songBoardList = songBoardRep.findAll(pageable);
+			return songBoardList;
+		}else {
+			searchText = "%"+ searchText +"%";
+			Page<SongBoard> songBoardList = songBoardRep.findByTitleLike(pageable, searchText);
+			return songBoardList;
+		}
+				
+		
 	}
 	
 	public SongBoard selSongBoard(int songBoardPk) {

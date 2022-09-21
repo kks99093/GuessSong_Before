@@ -24,18 +24,19 @@ public class Utils {
 			dir.mkdirs();
 		}
 		MultipartFile mf  = restFile.getSongImg();
-		try {
-			String originNm = mf.getOriginalFilename();
-			if(!"".equals(originNm)) {
-				String ext = originNm.substring(originNm.lastIndexOf("."));
-				saveFileNm = UUID.randomUUID()+ext;
-				mf.transferTo(new File(path + saveFileNm));
+		if(mf != null) {
+			try {
+				String originNm = mf.getOriginalFilename();
+				if(!"".equals(originNm)) {
+					String ext = originNm.substring(originNm.lastIndexOf("."));
+					saveFileNm = UUID.randomUUID()+ext;
+					mf.transferTo(new File(path + saveFileNm));
+				}
+				
+			}catch(Exception e) {
+				e.printStackTrace();
 			}
-			
-		}catch(Exception e) {
-			e.printStackTrace();
 		}
-		
 		return saveFileNm;
 	}
 	

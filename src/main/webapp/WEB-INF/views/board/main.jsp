@@ -24,7 +24,7 @@
 	
 	<div class="rigth_div">
 		<div class="search_div">
-			<input type="text" placeholder="노래 검색" name="searchText" id="searchText"><span id="search_span">검색</span>
+			<input type="text" placeholder="노래 검색" name="searchText" id="searchText" value="${searchText == null ? '' : searchText }" onkeyup="if(window.event.keyCode==13){searchBoard()}"><span id="search_span" onclick="searchBoard()">검색</span>
 		</div>
 		<div class="songBoardList_div">
 			<c:forEach var="songBoard" items="${songBoardList.content }">
@@ -42,7 +42,7 @@
 					</div>
 				</div>
 				<div class="board_title_div">
-					<span class="board_title_span">${songBoard.title}</span>
+					<span class="board_title_span" onclick="moveBoard(${songBoard.boardPk})">${songBoard.title}</span>
 					<span class="drop_menu" param1="${songBoard.boardPk }">...</span>
 				</div>
 				<div class="drop_menu_board" id="drop_menu_board${songBoard.boardPk}">
@@ -51,6 +51,15 @@
 				</div>
 			</div>
 			</c:forEach>
+		</div>
+		<div class="page_div">
+			<ul>
+				<li class="${songBoardList.pageable.pageNumber == 0 ? 'disable_evt disable_cursor' : '' }" onclick="pageMove(${songBoardList.pageable.pageNumber-1})">이전</li>
+				<c:forEach begin="${startIdx+1}" end="${songBoardList.totalPages > startIdx+10 ? startIdx+10 : songBoardList.totalPages  }" varStatus="status">
+					<li class="${songBoardList.pageable.pageNumber == status.index-1 ? 'disable_evt disable_cursor' : '' }" onclick="pageMove(${status.index-1})">${status.index}</li>
+				</c:forEach>
+				<li class="${songBoardList.pageable.pageNumber == songBoardList.totalPages-1 ? 'disable_evt disable_cursor' : '' }" onclick="pageMove(${songBoardList.pageable.pageNumber+1})">다음</li>
+			</ul>
 		</div>
 	</div>
 </div>
@@ -158,7 +167,15 @@
 	function moveBoard(boardPk){
 		location.href = "/board/modeSel?boardPk="+boardPk;
 	}
-
+	
+	function pageMove(pageNumber){
+		location.href = "/board/main?page="+pageNumber;
+	}
+	
+	function searchBoard(){
+		let searchText = $('#searchText').val()
+		location.href = "/board/main?searchText="+searchText;
+	}
 	
 
 </script>

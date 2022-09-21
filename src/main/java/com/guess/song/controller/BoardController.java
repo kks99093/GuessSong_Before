@@ -13,6 +13,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.guess.song.auth.PrincipalDetailsService;
 import com.guess.song.model.RestFile;
@@ -38,9 +39,13 @@ public class BoardController {
 	
 	
 	@GetMapping("/board/main")
-	public String main(@PageableDefault(sort = {"createTime"}, direction = Direction.DESC, size = 10) Pageable pageable, Model model) {
-		Page<SongBoard> songBoardList = boardService.selSongBoardList(pageable);
+	public String main(@PageableDefault(sort = {"createTime"}, direction = Direction.DESC, size = 24) Pageable pageable, Model model, @RequestParam(value="searchText", required=false) String searchText) {
+		Page<SongBoard> songBoardList = boardService.selSongBoardList(pageable, searchText);
+		model.addAttribute("startIdx", (int)(songBoardList.getPageable().getPageNumber()/10)*10);
 		model.addAttribute("songBoardList", songBoardList);
+		if(searchText != null && !searchText.equals("")) {
+			model.addAttribute("searchText", searchText);
+		}
 		
 				
 		return "/board/main";
@@ -64,7 +69,8 @@ public class BoardController {
 	
 	@GetMapping("/board/modeSel")
 	public String modSel(SongBoardParam songBoardParam, Model model) {
-		model.addAttribute("boardPk", songBoardParam.getBoardPk());
+		SongBoard songBoard = boardService.selSongBoard(songBoardParam.getBoardPk());
+		model.addAttribute("songBoard", songBoard);
 		return "/board/modeSel";
 	}
 	
