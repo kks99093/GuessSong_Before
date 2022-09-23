@@ -43,8 +43,6 @@ body{
 
 #soloPlay_div:hover{
 	cursor : pointer;
-	background-color: #000000;
-	color : #FFFFFF;
 }
 
 #multiPlay_div{
@@ -58,24 +56,25 @@ body{
 
 #multiPlay_div:hover{
 	cursor : pointer;
-	background-color: #000000;
-	color : #FFFFFF;
 }
 
-.name_div{
+.create_div{
 	padding : 10px;
 	text-align: center;
-	font-size : 30px;
+	font-size : 25px;
 }
 
-.name_div input{
-	border : none;
-	padding : 10px;
+.create_input{
+	border : solid black 1px;
 	font-size : 30px;
-}
-
-.name_span{
-	padding : 15px;
-	background-color: #FFFFFF;
 	border-radius: 25px;
+	text-align: center;
+}
+
+.create_span {
+	margin : 10px;
+}
+
+.multi_div{
+	display: none;
 }

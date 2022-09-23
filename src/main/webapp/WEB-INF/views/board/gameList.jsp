@@ -5,228 +5,59 @@
 <html>
 <head>
 <script src="/js/jquery-3.6.0.min.js"></script>
+<link rel="stylesheet" href="/css/gameList.css">
 <meta charset="UTF-8">
 <meta name="viewport" content="initial-scale=1.0; maximum-scale=1.0; width=device-width;">
-<title>Insert title here</title>
+<title>게임 목록</title>
 <style>
-@import url(https://fonts.googleapis.com/css?family=Roboto:400,500,700,300,100);
-
-body {
-  background-color: #3e94ec;
-  font-family: "Roboto", helvetica, arial, sans-serif;
-  font-size: 16px;
-  font-weight: 400;
-  text-rendering: optimizeLegibility;
-}
-
-div.table-title {
-   display: block;
-  margin: auto;
-  max-width: 600px;
-  padding:5px;
-  width: 100%;
-}
-
-.table-title h3 {
-   color: #fafafa;
-   font-size: 30px;
-   font-weight: 400;
-   font-style:normal;
-   font-family: "Roboto", helvetica, arial, sans-serif;
-   text-shadow: -1px -1px 1px rgba(0, 0, 0, 0.1);
-   text-transform:uppercase;
-}
-
-
-/*** Table Styles **/
-
-.table-fill {
-  background: white;
-  border-radius:3px;
-  border-collapse: collapse;
-  height: 320px;
-  margin: auto;
-  max-width: 600px;
-  padding:5px;
-  width: 100%;
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
-  animation: float 5s infinite;
-}
- 
-th {
-  color:#D5DDE5;;
-  background:#1b1e24;
-  border-bottom:4px solid #9ea7af;
-  border-right: 1px solid #343a45;
-  font-size:23px;
-  font-weight: 100;
-  padding:24px;
-  text-align:left;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
-  vertical-align:middle;
-}
-
-th:first-child {
-  border-top-left-radius:3px;
-}
- 
-th:last-child {
-  border-top-right-radius:3px;
-  border-right:none;
-}
-  
-tr {
-  border-top: 1px solid #C1C3D1;
-  border-bottom-: 1px solid #C1C3D1;
-  color:#666B85;
-  font-size:16px;
-  font-weight:normal;
-  text-shadow: 0 1px 1px rgba(256, 256, 256, 0.1);
-}
- 
-tr:hover td {
-  background:#4E5066;
-  color:#FFFFFF;
-  border-top: 1px solid #22262e;
-}
- 
-tr:first-child {
-  border-top:none;
-}
-
-tr:last-child {
-  border-bottom:none;
-}
- 
-tr:nth-child(odd) td {
-  background:#EBEBEB;
-}
- 
-tr:nth-child(odd):hover td {
-  background:#4E5066;
-}
-
-tr:last-child td:first-child {
-  border-bottom-left-radius:3px;
-}
- 
-tr:last-child td:last-child {
-  border-bottom-right-radius:3px;
-}
- 
-td {
-  background:#FFFFFF;
-  padding:20px;
-  text-align:left;
-  vertical-align:middle;
-  font-weight:300;
-  font-size:18px;
-  text-shadow: -1px -1px 1px rgba(0, 0, 0, 0.1);
-  border-right: 1px solid #C1C3D1;
-}
-
-td:last-child {
-  border-right: 0px;
-}
-
-th.text-left {
-  text-align: left;
-}
-
-th.text-center {
-  text-align: center;
-}
-
-th.text-right {
-  text-align: right;
-}
-
-td.text-left {
-  text-align: left;
-}
-
-td.text-center {
-  text-align: center;
-}
-
-td.text-right {
-  text-align: right;
-}
-
-<!-- 팝업-->
-
-button {
-  height: 2.5em;
-  cursor: pointer;
-}
-
-#popup {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, .7);
-  z-index: 1;
-}
-
-#popup.hide {
-  display: none;
-}
-
-#popup.has-filter {
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-}
-
-#popup .content {
-  padding: 20px;
-  background: #fff;
-  border-radius: 5px;
-  box-shadow: 1px 1px 3px rgba(0, 0, 0, .3);
-}
 
 </style>
 </head>
 <body>
 <div>
-	<div class="table-title">
+	<div class="table_title_div">
 		<h3>게임 목록</h3>
 	</div>	
-	<table class="table-fill">
+	<table class="table_div">
 		<thead>
 			<tr>
-		    <th class="text-left">제목</th>
-		    <th class="text-left">방장</th>
-		    <th class="text-left">노래 제목</th>
+			    <th class="text-left th_title">제목</th>
+			    <th class="text-left th_reader">방장</th>
+			    <th class="text-left th_amount">인원</th>
+			    <th class="text-left th_pass">&#128274;</th>
 			</tr>
 		</thead>
 		<tbody class="table-hover">
 			<c:forEach var="gameRoom" items="${gameRoomList.content}">
-				<tr onclick="showPopup(${gameRoom.roomPk})">
-					<td class="text-left">${gameRoom.title } 타이틀</td>
-					<td class="text-left">${gameRoom.reader } 이름</td>
+				<tr class="gameList_tr" param1="${gameRoom.roomPk }" param2="${gameRoom.password != null ? '1' : ''}">
+					<td class="text-left">${gameRoom.title } </td>
+					<td class="text-left">${gameRoom.reader } </td>
+					<td class="text-left">${gameRoom.headCount } / ${gameRoom.amount}</td>
+					<td>
+						<c:if test="${gameRoom.password != null }">
+							&#128274;							
+						</c:if>
+					</td>
 				</tr>
 			</c:forEach>
 		</tbody>
 	</table>
 	<div class="page_div">
 		<ul>
-			<li onclick="pageMove(${gameRoomList.pageable.pageNumber-1})">이전</li>	
+			<li class="${gameRoomList.pageable.pageNumber == 0 ? 'disable_evt disable_cursor' : '' }" onclick="pageMove(${gameRoomList.pageable.pageNumber-1})">이전</li>	
 			<c:forEach begin="${startIdx+1}" end="${gameRoomList.totalPages > startIdx+10 ? startIdx+10 : gameRoomList.totalPages}" varStatus="status">
-				<li onclick="pageMove(${status.index-1})">${status.index }</li>
+				<li class="${gameRoomList.pageable.pageNumber == status.index-1 ? 'disable_evt disable_cursor' : '' }" onclick="pageMove(${status.index-1})">${status.index }</li>
 			</c:forEach>
-			<li onclick="pageMove(${gameRoomList.pageable.pageNumber+1})">다음></li>
+			<li class="${gameRoomList.pageable.pageNumber == gameRoomList.totalPages-1 ? 'disable_evt disable_cursor' : '' }" onclick="pageMove(${gameRoomList.pageable.pageNumber+1})">다음></li>
 		</ul>
 	</div>
 </div>
 
 <div id="popup" class="hide">
   <div class="content">
-  	<span>닉네임 : </span><input type="text" id="userName" placeHolder="닉네임">
+  	<div class="pop_input_div">
+  		<div id="pop_userName_div"><span>닉네임 : </span><input type="text" id="userName"></div>
+  	</div>
   	<button id="playGame"> 들어가기</button>
     <button id="closePopup">닫기</button>
   </div>
@@ -239,14 +70,31 @@ button {
 		$('#closePopup').click(function(){
 			const popup = document.querySelector('#popup');
 			popup.classList.add('hide');
+			$('#pop_password_div').remove();
 			roomNumber = 0;
 		})
 		
+		//팝업
+		$('.gameList_tr').click(function(){
+			const popup = document.querySelector('#popup');
+			popup.classList.add('has-filter');
+			popup.classList.remove('hide');
+			roomNumber = $(this).attr("param1");
+			let passwordChkInput = $(this).attr("param2");
+			if(passwordChkInput == 1){
+				$('.pop_input_div').append('<div id="pop_password_div"><span>비밀번호 : </span><input type="password" id="password"><div>')
+			}
+		})
+		
+		
 		$('#playGame').click(function(){
-			var userName = $('#userName').val();
-			var data = {
+			let userName = $('#userName').val();
+			let password = $('#password').val();
+			
+			let data = {
 					roomPk : roomNumber,
-					userName : userName				
+					userName : userName,
+					password : password
 			}
 			
 			$.ajax({
@@ -256,9 +104,15 @@ button {
 				contentType : "application/json; charset=utf-8",
 				dataType: "json"
 			}).done(function(resp){
-				if(resp == 1){
+				if(resp == 0){
 					alert('현재 방에 동일한 이름을 사용하는 사람이 있습니다')
 					return
+				}else if(resp == -1){
+					alert('비밀번호가 틀렸습니다').
+					return;
+				}else if(resp == -2){
+					alert('인원이 가득 찼습니다.')
+					return;
 				}else{
 					var form = document.createElement('form');
 					form.setAttribute('method', 'post');
@@ -282,17 +136,11 @@ button {
 				}
 			})
 			
+			
 		})
 
 	})
 
-	
-	function showPopup(roomPk) {
-		const popup = document.querySelector('#popup');
-		popup.classList.add('has-filter');
-		popup.classList.remove('hide');
-		roomNumber = roomPk;
-	}
 	
 	function pageMove(pageNumber){
 		location.href = "/board/gameList?page="+pageNumber;

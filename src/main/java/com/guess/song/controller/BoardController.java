@@ -74,7 +74,7 @@ public class BoardController {
 		return "/board/modeSel";
 	}
 	
-	@GetMapping("/board/soloGameBoard")
+	@PostMapping("/board/soloGameBoard")
 	public String soloGameBoard(SongBoardParam songBoardParam, Model model) {
 		List<SongInfoDTO> songList = boardService.findSongList(songBoardParam.getBoardPk());
 		model.addAttribute("songList", songList);

@@ -2,6 +2,7 @@ package com.guess.song.service;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.guess.song.handller.SocketHandler;
 import com.guess.song.model.RestFile;
 import com.guess.song.model.dto.SongInfoDTO;
 import com.guess.song.model.entity.GameRoom;
@@ -143,15 +145,20 @@ public class BoardService {
 	
 	public GameRoom selRoomNumber(GameRoomParam gameRoomParam, UserInfoParam userInfoParam, SongBoardParam songBoardParam) {
 		GameRoom result = new GameRoom();
-		
+
 		if(gameRoomParam.getCreateRoom() == 1) {
 			//방이 없을경우 방 생성
 			GameRoom gameRoom = new GameRoom();
 			gameRoom.setTitle(gameRoomParam.getTitle());
 			gameRoom.setBoardPk(songBoardParam.getBoardPk());
 			gameRoom.setReader(userInfoParam.getUserName());
+			gameRoom.setAmount(gameRoomParam.getAmount());
+			gameRoom.setHeadCount(1);
 			if(gameRoomParam.getPassword() != null) {
-				gameRoom.setPassword(gameRoomParam.getPassword());
+				String salt = Utils.getSalt();
+				String cryptPw = Utils.getBcryptPw(salt, gameRoomParam.getPassword());
+				gameRoom.setSalt(salt);
+				gameRoom.setPassword(cryptPw);
 			}
 			gameRoom = gameRoomRep.save(gameRoom);
 			result = gameRoom;
@@ -162,7 +169,6 @@ public class BoardService {
 			//나중에 비밀번호 넣기
 			result = gameRoom;
 		}
-		
 		
 		return result;
 	}
@@ -222,6 +228,39 @@ public class BoardService {
 		if(crypPw.equals(songBoard.getPassword())) {
 			result = 1;
 		}
+		return result;
+	}
+	
+	//게임방 비밀번호, 인원, 중복아이디 체크
+	@SuppressWarnings("unchecked")
+	public int gameRoomPassChk(GameRoomParam gameRoomParam) {
+		int result = 1;
+		GameRoom gameRoom = gameRoomRep.findByRoomPk(gameRoomParam.getRoomPk());
+		if(gameRoom.getAmount() - gameRoom.getHeadCount() == 0) {
+			return  -2; //인원이 가득참
+		}
+		
+		if(gameRoomParam.getPassword() != null) {
+			String crypPw = Utils.getBcryptPw(gameRoom.getSalt(), gameRoomParam.getPassword());
+			if(!crypPw.equals(gameRoom.getPassword())) {
+				return result = -1;//비밀번호가 틀림
+			}
+		}
+		
+		
+		String roomNumber = gameRoomParam.getRoomPk()+"";
+		String userNameParam = gameRoomParam.getUserName();
+		HashMap<String, HashMap<String, Object>> roomList = SocketHandler.getRoomList();
+		HashMap<String, HashMap<String, Object>> userList = (HashMap<String, HashMap<String, Object>>) roomList.get(roomNumber).get("userList");
+		for(String key : userList.keySet()) {
+			System.out.println(userList.get(key));
+			String userName = (String) userList.get(key).get("userName");
+			if(userNameParam.equals(userName)) {
+				result = 0; // 중복된 아이디가 있음
+				break;
+			}
+		}
+		
 		return result;
 	}
 

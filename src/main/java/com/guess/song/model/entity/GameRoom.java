@@ -23,11 +23,15 @@ public class GameRoom {
 	
 	private String title;
 	
+	private String salt;
+	
 	private String password;
 	
 	private String reader;
 	
-	private int maximumNum;
+	private int amount;
+	
+	private int headCount;
 
 	private int boardPk;
 	

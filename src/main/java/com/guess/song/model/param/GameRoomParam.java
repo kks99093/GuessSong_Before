@@ -18,7 +18,7 @@ public class GameRoomParam {
 	
 	private String reader;
 	
-	private int maximumNum;
+	private int amount;
 
 	private String userName;
 	
