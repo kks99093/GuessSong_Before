@@ -47,7 +47,6 @@ public class BoardService {
 		//음악을 담을 게시판 정보 저장
 		SongBoard songBoard = new SongBoard();
 		if(songInfoParam.getBoardPk() == null) {
-			
 			String saveFileNm = Utils.fileUpload(restFile, request);
 			songBoard.setImg(saveFileNm);
 		}else {
@@ -90,6 +89,8 @@ public class BoardService {
 				int startIdx = youtubeUrl.indexOf("v=")+2;
 				int endIdx = youtubeUrl.indexOf("&");
 				youtubeUrl = youtubeUrl.substring(startIdx, endIdx);
+			}else {
+				continue;
 			}
 			
 			songInfo.setAnswer(songInfoParam.getAnswer().get(i));

@@ -3,6 +3,7 @@ package com.guess.song.handller;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -50,9 +51,6 @@ public class SocketHandler extends TextWebSocketHandler{
 	
 	
 	
-	
-	
-	
 	@SuppressWarnings("unchecked")
 	@Override
 	public void afterConnectionEstablished(WebSocketSession session) throws Exception {
@@ -80,9 +78,9 @@ public class SocketHandler extends TextWebSocketHandler{
 			//본인한테 이미 접속해있던 userList를 보냄
 			sendUserList(session, userList);
 			//이미 입장해 있는 다른 유저에게 본인 닉네임과 sessionId를 보냄 (메세지를 보낼때는 해당유저의 session을 가져와서 .sendMessage 메서드로 보냄)
-			sendMyInfo(session, userList, userName);
 			int songNumber = 0; //이걸로 방 생성인지 참가인지 구분
 			joinRoom(session, roomNumber ,songNumber, userName); //해당방의 userList에 입장한사람의 정보를 추가
+			sendMyInfo(session, userList, userName);
 			
 		}else {
 			//방 생성시 Map에다가 유저정보를 넣는처리 (songNumber 써서 메서드 하나로 생성 참가 다 처리할 수 있을듯?) 
@@ -93,7 +91,9 @@ public class SocketHandler extends TextWebSocketHandler{
 		}
 		
 		// 내 정보(sessionId)를 클라이언트로 넘겨서 저장함(이후에 보내는 메세지가 누군지 구분하기 위함)
+		String color = (String) ((HashMap<String, Object>) roomUserInfo.get(roomNumber).get(session.getId())).get("color");
 		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("userColor", color);
 		jsonObject.put("type", "sessionId");
 		jsonObject.put("sessionId", session.getId());
 		List<SongInfoDTO> songInfoList = (List<SongInfoDTO>)roomList.get(roomNumber).get("songList");
@@ -145,6 +145,12 @@ public class SocketHandler extends TextWebSocketHandler{
 					jsonObject.put("answerChk", answerChk);
 					jsonObject.put("youtubeUrl", nextYoutubeUrl);
 				}
+				String sessionId = (String) jsonObject.get("sessionId");
+				String userName = (String) ((HashMap<String, Object>) roomUserInfo.get(roomNumber).get(sessionId)).get("userName");
+				String userColor =(String) ((HashMap<String, Object>) roomUserInfo.get(roomNumber).get(sessionId)).get("color");
+				jsonObject.put("userColor", userColor);
+				jsonObject.put("sessionId", session.getId());
+				jsonObject.put("userName", userName);
 				break;
 			
 		}
@@ -220,10 +226,12 @@ public class SocketHandler extends TextWebSocketHandler{
 			roomInfo.put("songList", songList);
 			roomInfo.put("userList", userList); // 위의 유저리스트를 roomInfo에 userList형태로 저장
 			roomInfo.put("reader", session.getId()); // 만든사람의 session을 받아와서 roomInfo에 방장을 저장
-			
 			roomList.put(roomNumber, roomInfo); //위의 roomInfo를 roomList에 추가
+			userInfo.put("color", "red");
 		}else {
 			userList = roomUserInfo.get(roomNumber);
+			String color = searchingColor(userList);
+			userInfo.put("color", color);
 		}
 		userInfo.put("session", session); //유저정보에 session저장
 		userInfo.put("userName", userName); //유저정보에 유저이름 저장
@@ -241,6 +249,8 @@ public class SocketHandler extends TextWebSocketHandler{
 		for(String key : userListParam.keySet()) {
 			HashMap<String, String> userInfo = new HashMap<>();
 			String userName = (String)((HashMap<String, Object>) userListParam.get(key)).get("userName");
+			String userColor = (String)((HashMap<String, Object>) userListParam.get(key)).get("color");
+			userInfo.put("userColor", userColor);
 			userInfo.put("sessionId", key);
 			userInfo.put("userName", userName);
 			userList.add(userInfo);
@@ -265,9 +275,14 @@ public class SocketHandler extends TextWebSocketHandler{
 	public void sendMyInfo(WebSocketSession session, HashMap<String, Object> userList, String userName) {		
 		
 		HashMap<String, String> userInfo = new HashMap<String, String>();
+		String userColor = (String) ((HashMap<String, Object>) userList.get(session.getId())).get("color");
 		userInfo.put("userName", userName);
 		userInfo.put("sessionId", session.getId());
+		userInfo.put("userColor", userColor);
 		for(String key : userList.keySet()) {
+			if(key.equals(session.getId())) {
+				continue;
+			}
 			JSONObject jsonObject = new JSONObject();
 			jsonObject.put("type", "join");
 			jsonObject.put("user", userInfo);
@@ -364,6 +379,28 @@ public class SocketHandler extends TextWebSocketHandler{
 	
 	public static HashMap<String, HashMap<String, Object>> getRoomList(){
 		return roomList;
+	}
+	
+	
+	@SuppressWarnings("unchecked")
+	public String searchingColor(HashMap<String, Object> userList) {
+		String[] colorList = {"red", "blue", "green", "gray", "black", "brown", "purple", "yellow"};
+		String color = "";
+		
+		for(String key : userList.keySet()) {
+			color = (String)((HashMap<String,Object>) userList.get(key)).get("color");
+			for(int i = 0; i < colorList.length; i++) {
+				if(color.equals(colorList[i])) {
+					List<String> result = new ArrayList<>(Arrays.asList(colorList));
+					result.remove(i);
+					colorList = result.toArray(new String[0]);
+					break;
+				}
+			}
+		}
+		
+		color = colorList[0];
+		return color; 
 	}
 	
 }

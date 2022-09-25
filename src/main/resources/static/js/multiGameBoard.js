@@ -104,7 +104,7 @@ wsOpen()
 //소켓 메세지 type별 처리
 function addSessionIdType(jsonObject){
 	$('#sessionId').val(jsonObject.sessionId)
-	$('.gameBoard_userInfo').append('<div class="userInfo_div"> <div class="userName border"><span>'+ userName +'</span></div> <div class="userPoint border"><span id="'+jsonObject.sessionId+'">0</span></div> </div>')
+	$('.gameBoard_userInfo').append('<div class="userInfo_div"> <div class="userName border"><span class="'+jsonObject.userColor+'">'+ userName +'</span></div> <div class="userPoint border"><span id="'+jsonObject.sessionId+'">0</span></div> </div>')
 	youtubeUrl = jsonObject.youtubeUrl;
 	var tag = document.createElement('script');
 	tag.src = "https://www.youtube.com/iframe_api";
@@ -115,11 +115,11 @@ function addSessionIdType(jsonObject){
 function joinUserType(jsonObject){
 	if(jsonObject.user != null){
 		//입장한 사람의 정보를 추가
-		$('.gameBoard_userInfo').append('<div class="userInfo_div" id="'+jsonObject.user.sessionId+'_div"> <div class="userName border"><span>'+ jsonObject.user.userName +'</span></div> <div class="userPoint border"><span id="'+jsonObject.user.sessionId+'">0</span></div> </div>')
+		$('.gameBoard_userInfo').append('<div class="userInfo_div" id="'+jsonObject.user.sessionId+'_div"> <div class="userName"><span class="'+jsonObject.user.userColor+'">'+ jsonObject.user.userName +'</span></div> <div class="userPoint"><span id="'+jsonObject.user.sessionId+'">0</span></div> </div>')
 	}else{
 		//다른사람정보를 추가
 		for(i = 0; i < jsonObject.userList.length; i++){
-			$('.gameBoard_userInfo').append('<div class="userInfo_div" id="'+jsonObject.userList[i].sessionId+'_div"> <div class="userName border"><span>'+ jsonObject.userList[i].userName +'</span></div> <div class="userPoint border"><span id="'+jsonObject.userList[i].sessionId+'_span">0</span></div> </div>')
+			$('.gameBoard_userInfo').append('<div class="userInfo_div" id="'+jsonObject.userList[i].sessionId+'_div"> <div class="userName"><span class="'+jsonObject.userList[i].userColor+'">'+ jsonObject.userList[i].userName +'</span></div> <div class="userPoint"><span id="'+jsonObject.userList[i].sessionId+'_span">0</span></div> </div>')
 		}
 		
 	}
@@ -135,7 +135,13 @@ function receiveMessageType(jsonObject){
 		youtubeUrl = jsonObject.youtubeUrl;	
 		
 	}else{ //정답이 아닐 경우
-		$("#chatData").append("<p>" + jsonObject.msg + "</p>");	
+		let sessionId = $('#sessionId').val();
+		console.log(jsonObject.userName)
+		if(jsonObject.sessionId == sessionId){
+			$("#chatData").append('<p class="my_chat chatData"><span class="'+jsonObject.userColor+'">' +jsonObject.userName + '</span> : ' + jsonObject.msg + '</p>');
+		}else{
+			$("#chatData").append('<p class="chatData"><span class="'+jsonObject.userColor+'">' +jsonObject.userName + '</span> : ' + jsonObject.msg + '</p>');			
+		}
 	}	
 }
 
