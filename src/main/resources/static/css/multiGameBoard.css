@@ -1,0 +1,95 @@
+@charset "UTF-8";
+
+.border {
+	border: solid black 1px;
+}
+
+.gameBoard_songInfo{
+	width: 200px;
+   	height: 200px;
+	margin: auto;
+}
+.startGame_div{
+	width: 100px;
+    height: 40px;
+    text-align: center;
+    margin: 10px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.skipSong_div{
+	width: 100px;
+    height: 40px;
+    text-align: center;
+    margin: 10px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#skip_div{
+	display: none;
+}
+
+#skipCount_div{
+	display: none;
+}
+
+.gameBoard_chat{
+    width: 600px;
+    height: 350px;
+    margin: 10px 10px;
+}
+
+.chatOutput_div{
+	width: 100%;
+   	height: 300px;
+   	overflow: auto;
+   	background-color: #EEE6C4;
+}
+
+.chatInput_div{
+    width: 100%;
+   	height: 40px;
+   	text-align: right;
+   	margin-top: 5px;	
+}
+
+.chatInput_input{
+	width: 100%;
+	height: 100%;
+}
+
+.gameBoard_userInfo{
+    width: 100%;
+   	margin: 50px 10px 10px 10px;
+}
+
+.userName{
+	width: 100px;
+    height: 50px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.userPoint{
+    width: 100px;
+    height: 50px;
+    margin-top: 10px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#youtubePlayer{
+	display: none;
+}
+
+.answerColor{
+	color: purple;
+}

@@ -34,7 +34,24 @@ public class SocketHandler extends TextWebSocketHandler{
 	//HashMap<String, Object> roomInfo = new HashMap<>();
 	
 	//roomNumber로 위의 Hash맵을 불러오는 최상위 HashMap 위의 정보만 불러올거라 HashMap타입을 넣어줘도 됨
-	private static HashMap<String, HashMap<String, Object>>  roomList = new HashMap<>();
+	//private static HashMap<String, HashMap<String, Object>>  roomList = new HashMap<>();
+	
+	
+	//방 리스트, 방에대한 정보, 유저리스트, 유저 정보
+	private static HashMap<String, HashMap<String, Object>> roomList = new HashMap<>();
+	
+	
+	// 방번호를 입력 받아서 getId를 돌려준다?
+	private static HashMap<String, HashMap<String, Object>> roomUserInfo = new HashMap<>();
+	
+	
+	//유저 getId를 키로 받아서 username과 getId를 넣어놓음 근데 getId까지 필요할까?
+	// 그냥 HashMap<Stirng, String>으로 getId로 username을 받는건 안될까?
+	
+	
+	
+	
+	
 	
 	@SuppressWarnings("unchecked")
 	@Override
@@ -59,7 +76,7 @@ public class SocketHandler extends TextWebSocketHandler{
 		//방 입장시
 		if(flag == true) {
 			//본인한테 보낼거 : 다른사람의 sessionId와 닉네임 ==> userList를 보내면 될듯
-			HashMap<String, HashMap<String, Object>> userList = (HashMap<String, HashMap<String, Object>>) roomList.get(roomNumber).get("userList");
+			HashMap<String, Object> userList = roomUserInfo.get(roomNumber); 
 			//본인한테 이미 접속해있던 userList를 보냄
 			sendUserList(session, userList);
 			//이미 입장해 있는 다른 유저에게 본인 닉네임과 sessionId를 보냄 (메세지를 보낼때는 해당유저의 session을 가져와서 .sendMessage 메서드로 보냄)
@@ -132,11 +149,12 @@ public class SocketHandler extends TextWebSocketHandler{
 			
 		}
 
-		HashMap<String, HashMap<String, Object>> userList = (HashMap<String, HashMap<String, Object>>) roomList.get(roomNumber).get("userList");
-			
+		//HashMap<String, HashMap<String, Object>> userList = (HashMap<String, HashMap<String, Object>>) roomList.get(roomNumber).get("userList");
+		
+		HashMap<String, Object> userList = roomUserInfo.get(roomNumber); 
 		//userList를 돌며 session을 가져와서 메세지를 보냄
 		for(String key : userList.keySet()) {
-			WebSocketSession wss = (WebSocketSession)userList.get(key).get("session");
+			WebSocketSession wss = (WebSocketSession)((HashMap<String, Object>) userList.get(key)).get("session");
 			try {
 				wss.sendMessage(new TextMessage(jsonObject.toString()));
 			}catch(Exception e) {
@@ -154,10 +172,10 @@ public class SocketHandler extends TextWebSocketHandler{
 		
 		String roomNumber = "";
 		String mySessionId = session.getId();
-		HashMap<String, HashMap<String, Object>> userList = new HashMap<>();
+		HashMap<String, Object> userList = new HashMap<String, Object>();
 		//모든 방을 돌며 해당 유저의 sessionId를 지운다(사실상 하나의 방에서만 지움)
 		for(String key : roomList.keySet()) {
-			userList = (HashMap<String, HashMap<String, Object>>) roomList.get(key).get("userList");
+			userList = roomUserInfo.get(key);
 			if(userList.get(mySessionId) != null) {
 				userList.remove(mySessionId);
 				roomNumber = key;
@@ -171,13 +189,13 @@ public class SocketHandler extends TextWebSocketHandler{
 			JSONObject jsonObject = new JSONObject();
 			jsonObject.put("type", "left");
 			jsonObject.put("sessionId", mySessionId);
-			WebSocketSession wss = (WebSocketSession)userList.get(key).get("session");
+			WebSocketSession wss = (WebSocketSession)((HashMap<String, Object>) userList.get(key)).get("session");
 			wss.sendMessage(new TextMessage (jsonObject.toString()));
 		}
 		
 		
 		//방에 사람이 0명이면 게임방 삭제
-		userList = (HashMap<String, HashMap<String, Object>>) roomList.get(roomNumber).get("userList");
+		userList = roomUserInfo.get(roomNumber);
 		if(userList.size() < 1 && !roomNumber.equals("")) {
 			boardService.delGameRoom(roomNumber);
 		}
@@ -189,39 +207,40 @@ public class SocketHandler extends TextWebSocketHandler{
 	
 	//ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ Not Override 메서드 ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
 	
+	
 	//방 만들시 처리해줄 로직
-	@SuppressWarnings("unchecked")	
 	public void joinRoom(WebSocketSession session, String roomNumber, int songNumber, String userName) {
+		
 		HashMap<String, Object> roomInfo = new HashMap<String, Object>();
 		HashMap<String, Object> userInfo = new HashMap<String, Object>();
-		HashMap<String, HashMap<String, Object>> userList = new HashMap<String, HashMap<String, Object>>();
+		HashMap<String, Object> userList = new HashMap<String, Object>();
 		//노래목록을 여기서 추가?
 		if(songNumber != 0) { //songNumber가 0이 아니면 방 생성
 			List<SongInfoDTO> songList = boardService.findSongList(songNumber);
 			roomInfo.put("songList", songList);
+			roomInfo.put("userList", userList); // 위의 유저리스트를 roomInfo에 userList형태로 저장
+			roomInfo.put("reader", session.getId()); // 만든사람의 session을 받아와서 roomInfo에 방장을 저장
+			
+			roomList.put(roomNumber, roomInfo); //위의 roomInfo를 roomList에 추가
 		}else {
-			userList = (HashMap<String, HashMap<String, Object>>) roomList.get(roomNumber).get("userList");
+			userList = roomUserInfo.get(roomNumber);
 		}
 		userInfo.put("session", session); //유저정보에 session저장
 		userInfo.put("userName", userName); //유저정보에 유저이름 저장
 		userList.put(session.getId(), userInfo); // 위의 유저정보를 userList에 sessionId로 추가
 		
-		if(songNumber != 0) {
-			roomInfo.put("userList", userList); // 위의 유저리스트를 roomInfo에 userList형태로 저장
-			roomInfo.put("reader", session.getId()); // 만든사람의 session을 받아와서 roomInfo에 방장을 저장
-			
-			roomList.put(roomNumber, roomInfo); //위의 roomInfo를 roomList에 추가
-		}		
+		roomUserInfo.put(roomNumber, userList);
+		
 	}
 	
 	
 	@SuppressWarnings("unchecked")
-	public void sendUserList(WebSocketSession session, HashMap<String, HashMap<String, Object> >userListParam) {
+	public void sendUserList(WebSocketSession session, HashMap<String, Object> userListParam) {
 		List<HashMap<String, String>> userList = new ArrayList<>();
 		
 		for(String key : userListParam.keySet()) {
 			HashMap<String, String> userInfo = new HashMap<>();
-			String userName = (String)userListParam.get(key).get("userName");
+			String userName = (String)((HashMap<String, Object>) userListParam.get(key)).get("userName");
 			userInfo.put("sessionId", key);
 			userInfo.put("userName", userName);
 			userList.add(userInfo);
@@ -243,7 +262,7 @@ public class SocketHandler extends TextWebSocketHandler{
 	
 	// 내 정보를 방의 사람들에게 보냄
 	@SuppressWarnings("unchecked")
-	public void sendMyInfo(WebSocketSession session, HashMap<String, HashMap<String, Object>> userList, String userName) {		
+	public void sendMyInfo(WebSocketSession session, HashMap<String, Object> userList, String userName) {		
 		
 		HashMap<String, String> userInfo = new HashMap<String, String>();
 		userInfo.put("userName", userName);
@@ -252,7 +271,7 @@ public class SocketHandler extends TextWebSocketHandler{
 			JSONObject jsonObject = new JSONObject();
 			jsonObject.put("type", "join");
 			jsonObject.put("user", userInfo);
-			WebSocketSession wss = (WebSocketSession)userList.get(key).get("session");
+			WebSocketSession wss = (WebSocketSession)((HashMap<String, Object>) userList.get(key)).get("session");
 			try {
 				wss.sendMessage(new TextMessage(jsonObject.toString()));
 			}catch(Exception e) {

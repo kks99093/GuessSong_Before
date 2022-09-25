@@ -154,7 +154,7 @@ public class BoardService {
 			gameRoom.setReader(userInfoParam.getUserName());
 			gameRoom.setAmount(gameRoomParam.getAmount());
 			gameRoom.setHeadCount(1);
-			if(gameRoomParam.getPassword() != null) {
+			if(gameRoomParam.getPassword() != null && !gameRoomParam.getPassword().equals("")) {
 				String salt = Utils.getSalt();
 				String cryptPw = Utils.getBcryptPw(salt, gameRoomParam.getPassword());
 				gameRoom.setSalt(salt);
