@@ -13,17 +13,8 @@
 
 
 <div class="gameBoard_container">
-	<div class="gaomeBoard_songInfo">
-	<c:choose>
-		<c:when test="${userInfo.userRole == 1 }">
-			<div class="startGame_div" id="startGame_div"><span id="startGame_span">시작하기</span></div>
-		</c:when>
-		<c:otherwise>
-			<div class="startGame_div" id="readyGame_div"><span id="readyGame_span">레디</span></div>
-		</c:otherwise>
-	</c:choose>
-		<div class="border skipSong_div" id="skip_div"><span id="skip_span">넘기기</span></div>
-		<div class="border skipSong_div" id="skipCount_div"><span id="skipCount_span"></span></div>
+	<div class="gameBoard_songInfo">
+		<div class="skipSong_div" id="skip_div"><span id="skip_span">넘기기 <span id="skip_count_span"></span></span></div>
 		<div id="songHint_div"><span></span></div>
 	</div>
 	<div class="gameBoard_chat">
@@ -34,6 +25,15 @@
 		</div>
 	</div>
 	<div class="gameBoard_userInfo border">
+		<div class="userInfo_div" id="'+jsonObject.userList[i].sessionId+'_div"> 
+			<div class="userName">
+				<span class="'+jsonObject.userList[i].userColor+'">userName</span>
+			</div> 
+			<div class="userPoint">
+				<span id="'+jsonObject.userList[i].sessionId+'_span">0</span>
+			</div>
+			
+		</div>
 	</div>			
 </div>
 <div id="youtubePlayer">

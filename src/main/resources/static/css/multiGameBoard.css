@@ -6,11 +6,6 @@ body{
 	background-color: #F2F2F2;
 }
 
-.gameBoard_songInfo{
-	width: 200px;
-   	height: 200px;
-	margin: auto;
-}
 .startGame_div{
 	width: 100px;
     height: 40px;
@@ -37,6 +32,13 @@ body{
     display: flex;
     align-items: center;
     justify-content: center;
+    border : 1px solid black;
+    border-radius : 10px;
+    padding: 10px;
+    background-color : #FFFFFF;
+}
+.skipSong_div:hover{
+	cursor : pointer;
 }
 
 #skip_div{
@@ -99,6 +101,7 @@ body{
 .gameBoard_userInfo{
    	margin: 50px 10px 10px 10px;
    	display: flex;
+   	height : 160px; 
 }
 
 .userName{
@@ -179,8 +182,31 @@ body{
 	color : yellow;
 }
 
+.disable_evt{
+	pointer-events : none;
+	background-color: gray;
+	opacity: 0.65;
+}
+.disable_cursor{
+	cursor : default;
+}
 
+.able_evt{
+	pointer-events : auto;
+	background-color : #FFFFFF;
+}
 
+.ready_div{
+	text-align: center;
+	background-color : yellow;
+}
+
+.loading_div{
+	padding : 15px;
+	text-align : center;
+	font-size: 30px;
+	font-weight: bold;
+}
 
 
 

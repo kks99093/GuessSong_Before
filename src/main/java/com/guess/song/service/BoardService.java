@@ -174,6 +174,15 @@ public class BoardService {
 		return result;
 	}
 	
+	public int selSongInfo(SongBoardParam songBoardParam) {
+		int result = 1;
+		SongInfo songInfo = songRep.findBySongBoardPkLimit1(songBoardParam.getBoardPk());
+		if(songInfo == null) {
+			result = 0;
+		}
+		return result;
+	}
+	
 	public Page<GameRoom> selGameRoom(Pageable pageable){
 		Page<GameRoom> gameRoomList = gameRoomRep.findAll(pageable);
 		return gameRoomList;
@@ -251,11 +260,10 @@ public class BoardService {
 		
 		String roomNumber = gameRoomParam.getRoomPk()+"";
 		String userNameParam = gameRoomParam.getUserName();
-		HashMap<String, HashMap<String, Object>> roomList = SocketHandler.getRoomList();
-		HashMap<String, HashMap<String, Object>> userList = (HashMap<String, HashMap<String, Object>>) roomList.get(roomNumber).get("userList");
+		HashMap<String, Object> userList = SocketHandler.getUserList(roomNumber);
 		for(String key : userList.keySet()) {
 			System.out.println(userList.get(key));
-			String userName = (String) userList.get(key).get("userName");
+			String userName = (String) ((HashMap<String, Object>)userList.get(key)).get("userName");
 			if(userNameParam.equals(userName)) {
 				result = 0; // 중복된 아이디가 있음
 				break;
@@ -263,6 +271,26 @@ public class BoardService {
 		}
 		
 		return result;
+	}
+	
+	public HashMap<String, Object> getRoomInfo(String roomNumberStr, int songNumber){
+		HashMap<String, Object> roomInfo = new HashMap<String, Object>();
+		int roomNumber = Integer.parseInt(roomNumberStr);
+		GameRoom gameRoom = gameRoomRep.findByRoomPk(roomNumber);
+		List<SongInfoDTO> songList = findSongList(songNumber);
+		roomInfo.put("amount", gameRoom.getAmount());
+		roomInfo.put("headCount", gameRoom.getHeadCount());
+		roomInfo.put("songList", songList);
+		roomInfo.put("ready", 1);
+		
+		return roomInfo;
+	}
+	
+	public void updHeadCount(String roomNumberStr, int headCount) {
+		int roomNumber = Integer.parseInt(roomNumberStr);
+		GameRoom gameRoom = gameRoomRep.findByRoomPk(roomNumber);
+		gameRoom.setHeadCount(headCount);
+		gameRoomRep.save(gameRoom);
 	}
 
 }

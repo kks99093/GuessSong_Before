@@ -16,6 +16,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import com.guess.song.model.dto.SongInfoDTO;
+import com.guess.song.model.entity.GameRoom;
 import com.guess.song.service.BoardService;
 import com.guess.song.util.Utils;
 
@@ -72,7 +73,7 @@ public class SocketHandler extends TextWebSocketHandler{
 
 		
 		//방 입장시
-		if(flag == true) {
+		if(flag == true) { //입장
 			//본인한테 보낼거 : 다른사람의 sessionId와 닉네임 ==> userList를 보내면 될듯
 			HashMap<String, Object> userList = roomUserInfo.get(roomNumber); 
 			//본인한테 이미 접속해있던 userList를 보냄
@@ -82,7 +83,7 @@ public class SocketHandler extends TextWebSocketHandler{
 			joinRoom(session, roomNumber ,songNumber, userName); //해당방의 userList에 입장한사람의 정보를 추가
 			sendMyInfo(session, userList, userName);
 			
-		}else {
+		}else {  //생성
 			//방 생성시 Map에다가 유저정보를 넣는처리 (songNumber 써서 메서드 하나로 생성 참가 다 처리할 수 있을듯?) 
 			String songNumberStr = (url.split("/chating/")[1]).split("/")[1]; // 노래목록 pk값
 			int songNumber = Integer.parseInt(songNumberStr);
@@ -96,8 +97,10 @@ public class SocketHandler extends TextWebSocketHandler{
 		jsonObject.put("userColor", color);
 		jsonObject.put("type", "sessionId");
 		jsonObject.put("sessionId", session.getId());
+		jsonObject.put("reader", roomList.get(roomNumber).get("reader"));
 		List<SongInfoDTO> songInfoList = (List<SongInfoDTO>)roomList.get(roomNumber).get("songList");
 		jsonObject.put("youtubeUrl", songInfoList.get(0).getYoutubeUrl());
+		
 		session.sendMessage(new TextMessage(jsonObject.toString()));
 
 	}
@@ -114,36 +117,45 @@ public class SocketHandler extends TextWebSocketHandler{
 		String type = (String)jsonObject.get("type");
 		String youtubeUrl = "";
 		HashMap<String, Object> roomInfo = roomList.get(roomNumber);
-		
-		
+		int readyChk = 0;
 		
 		switch(type) {
 			case "gameStart" :
-				roomInfo.put("currentSong", 0);
+				readyChk = readyChk(roomNumber);
+				if(readyChk == 1) {
+					roomInfo.put("currentSong", 0);
+				}
+				jsonObject.put("readyChk", readyChk);
 				break;
 			case "skipSong" :
-				int skipChk = skipSong(roomInfo);
+				int skipChk = skipSong(roomInfo, roomNumber);
+				
+				jsonObject.put("skipChk", skipChk);
+				
 				if(skipChk == 1) {
 					youtubeUrl = nextYoutubeUrl(roomInfo);
 					jsonObject.put("youtubeUrl", youtubeUrl);
-				}else if(skipChk == 2){
+				}else if(skipChk == -1){
 					jsonObject.put("skipChk", skipChk);
 				}else {
-					int skipNum = (int)roomInfo.get("skipNum");
-					jsonObject.put("skipNum", skipNum);
+					int skipCount = (int)roomInfo.get("skipCount");
+					jsonObject.put("skipCount", skipCount);
 				}
+				
 				break;
 			case "ready":
-				int readyChk = userReady(roomInfo);
-				jsonObject.put("readyChk", readyChk);
+				userReady(roomNumber, 1);
+				jsonObject.put("sessionId", session.getId());
 				break;
 			case "message" :
-				if(roomInfo.get("currentSong") != null) {
+				String answerReady = (String)jsonObject.get("answerReady");
+				if(roomInfo.get("currentSong") != null && answerReady.equals("1")) {
 					String userMsg = ((String)jsonObject.get("msg")).replaceAll("\\s", "");
 					int answerChk = answerChk(roomInfo, userMsg);
 					String nextYoutubeUrl = nextYoutubeUrl(roomInfo);
-					jsonObject.put("answerChk", answerChk);
 					jsonObject.put("youtubeUrl", nextYoutubeUrl);
+					jsonObject.put("answerChk", answerChk);
+					
 				}
 				String sessionId = (String) jsonObject.get("sessionId");
 				String userName = (String) ((HashMap<String, Object>) roomUserInfo.get(roomNumber).get(sessionId)).get("userName");
@@ -152,21 +164,34 @@ public class SocketHandler extends TextWebSocketHandler{
 				jsonObject.put("sessionId", session.getId());
 				jsonObject.put("userName", userName);
 				break;
+			case "readyCencel" :
+				userReady(roomNumber, -1);
+				jsonObject.put("sessionId", session.getId());
+				break;
+			case "nextSongChk" :
+				int nextSongChk = nextSongChk(roomNumber);
+				jsonObject.put("nextSongChk", nextSongChk);
+				break;
 			
 		}
 
 		//HashMap<String, HashMap<String, Object>> userList = (HashMap<String, HashMap<String, Object>>) roomList.get(roomNumber).get("userList");
-		
-		HashMap<String, Object> userList = roomUserInfo.get(roomNumber); 
-		//userList를 돌며 session을 가져와서 메세지를 보냄
-		for(String key : userList.keySet()) {
-			WebSocketSession wss = (WebSocketSession)((HashMap<String, Object>) userList.get(key)).get("session");
-			try {
-				wss.sendMessage(new TextMessage(jsonObject.toString()));
-			}catch(Exception e) {
-				e.printStackTrace();
+		if(type.equals("gameStart") && readyChk == 0) {
+			session.sendMessage(new TextMessage(jsonObject.toString()));
+		}else {
+			HashMap<String, Object> userList = roomUserInfo.get(roomNumber); 
+			//userList를 돌며 session을 가져와서 메세지를 보냄
+			for(String key : userList.keySet()) {
+				WebSocketSession wss = (WebSocketSession)((HashMap<String, Object>) userList.get(key)).get("session");
+				try {
+					wss.sendMessage(new TextMessage(jsonObject.toString()));
+				}catch(Exception e) {
+					e.printStackTrace();
+				}
 			}
 		}
+		
+		
 
 		super.handleTextMessage(session, message);
 	}
@@ -189,6 +214,9 @@ public class SocketHandler extends TextWebSocketHandler{
 			}
 		}
 		
+		//인원수 갱신
+		int headCount = roomUserInfo.get(roomNumber).size();
+		boardService.updHeadCount(roomNumber, headCount);
 		
 		// 방에 있는 사람들에게 sessionId를 보내 클라이언트 유저목록에서 지움
 		for(String key : userList.keySet()) {
@@ -217,14 +245,12 @@ public class SocketHandler extends TextWebSocketHandler{
 	//방 만들시 처리해줄 로직
 	public void joinRoom(WebSocketSession session, String roomNumber, int songNumber, String userName) {
 		
-		HashMap<String, Object> roomInfo = new HashMap<String, Object>();
 		HashMap<String, Object> userInfo = new HashMap<String, Object>();
 		HashMap<String, Object> userList = new HashMap<String, Object>();
 		//노래목록을 여기서 추가?
 		if(songNumber != 0) { //songNumber가 0이 아니면 방 생성
-			List<SongInfoDTO> songList = boardService.findSongList(songNumber);
-			roomInfo.put("songList", songList);
-			roomInfo.put("userList", userList); // 위의 유저리스트를 roomInfo에 userList형태로 저장
+			HashMap<String, Object> roomInfo = boardService.getRoomInfo(roomNumber,songNumber);
+
 			roomInfo.put("reader", session.getId()); // 만든사람의 session을 받아와서 roomInfo에 방장을 저장
 			roomList.put(roomNumber, roomInfo); //위의 roomInfo를 roomList에 추가
 			userInfo.put("color", "red");
@@ -237,8 +263,12 @@ public class SocketHandler extends TextWebSocketHandler{
 		userInfo.put("userName", userName); //유저정보에 유저이름 저장
 		userList.put(session.getId(), userInfo); // 위의 유저정보를 userList에 sessionId로 추가
 		
+		
 		roomUserInfo.put(roomNumber, userList);
 		
+		//유저수 갱신
+		int headCount = roomUserInfo.get(roomNumber).size();
+		boardService.updHeadCount(roomNumber, headCount);
 	}
 	
 	
@@ -297,26 +327,25 @@ public class SocketHandler extends TextWebSocketHandler{
 	
 	
 	
-	@SuppressWarnings("unchecked")
-	public int skipSong(HashMap<String, Object> roomInfo) {
+	public int skipSong(HashMap<String, Object> roomInfo, String roomNumber) {
 		int skipChk = 0;
 		
 		if("".equals(nextYoutubeUrl(roomInfo))) {
-			skipChk = 2; //마지막 곡이었음
+			skipChk = -1; //마지막 곡이었음
 		}else {
-			HashMap<String, HashMap<String, Object>> userList = (HashMap<String, HashMap<String, Object>>) roomInfo.get("userList");
-			if(roomInfo.get("skipNum") == null) {
-				roomInfo.put("skipNum", 1);
+			HashMap<String, Object> userList = roomUserInfo.get(roomNumber);
+			if(roomInfo.get("skipCount") == null) {
+				roomInfo.put("skipCount", 1);
 			}else {
-				int skipNum = (int)roomInfo.get("skipNum");
-				roomInfo.put("skipNum", skipNum+1);
+				int skipCount = (int)roomInfo.get("skipCount");
+				roomInfo.put("skipCount", skipCount+1);
 			}
-			int skipNum = (int)roomInfo.get("skipNum");
-			int userListNum = userList.size();
-			if(skipNum>(userListNum/2)) {
-				roomInfo.remove("skipNum");
+			int skipCount = (int)roomInfo.get("skipCount");
+			if(skipCount>(userList.size()/2)) {
+				roomInfo.remove("skipCount");
 				skipChk = 1;
 			}
+			
 		}
 		
 		return skipChk;
@@ -334,24 +363,17 @@ public class SocketHandler extends TextWebSocketHandler{
 		
 	}
 	
-	@SuppressWarnings("unchecked")
-	public int userReady(HashMap<String, Object> roomInfo) {
-		int readyChk = 0;
-		HashMap<String, HashMap<String, Object>> userList = (HashMap<String, HashMap<String, Object>>) roomInfo.get("userList");
-		if(roomInfo.get("readyUser") == null) {
-			roomInfo.put("readyUser", 1);
-		}else {
-			int currentReadyNum = (int)roomInfo.get("readyUser");
-			roomInfo.put("readyUser", currentReadyNum+1);
-		}
-		
-		int readyNum = (int)roomInfo.get("readyUser");
-		int userListNum = userList.size();
+	public void userReady(String roomNumber, int count) {
+		int readyHead = (int) roomList.get(roomNumber).get("ready") + count;
+		roomList.get(roomNumber).put("ready", readyHead);
 
-		if(readyNum == userListNum) {
-			int currentSong = (int)roomInfo.get("currentSong");
-			roomInfo.put("currentSong", currentSong+1);
-			roomInfo.remove("readyUser");
+	}
+	
+	public int readyChk (String roomNumber) {
+		int readyChk = 0;
+		int readyHead = (int) roomList.get(roomNumber).get("ready");
+		int headCount = roomUserInfo.get(roomNumber).size();
+		if(readyHead == headCount) {
 			readyChk = 1;
 		}
 		return readyChk;
@@ -363,7 +385,6 @@ public class SocketHandler extends TextWebSocketHandler{
 	@SuppressWarnings("unchecked")
 	public int answerChk(HashMap<String, Object> roomInfo, String userMsg) {
 		int answerChk = 0;
-		
 		List<SongInfoDTO> songList = (List<SongInfoDTO>)roomInfo.get("songList");
 		int currentSong = (int)roomInfo.get("currentSong");
 		if(songList.get(currentSong).getAnswer() != null) { //정답칸이 비어있다 => 이미 정답자가 나왔다는 뜻이므로 정답체크 할 필요가 없음
@@ -377,8 +398,8 @@ public class SocketHandler extends TextWebSocketHandler{
 		return answerChk;
 	}
 	
-	public static HashMap<String, HashMap<String, Object>> getRoomList(){
-		return roomList;
+	public static HashMap<String, Object> getUserList(String roomNumber){
+		return roomUserInfo.get(roomNumber);
 	}
 	
 	
@@ -401,6 +422,24 @@ public class SocketHandler extends TextWebSocketHandler{
 		
 		color = colorList[0];
 		return color; 
+	}
+	
+	public int nextSongChk(String roomNumber) {
+		int nextSongChk = 0;
+		HashMap<String, Object> roomInfo = roomList.get(roomNumber);
+		if(roomInfo.get("nextSongChk") == null) {
+			roomInfo.put("nextSongChk", 1);
+		}else {
+			roomInfo.put("nextSongChk", (int)roomInfo.get("nextSongChk") + 1);
+		}
+		
+		if((int)roomInfo.get("nextSongChk") == roomUserInfo.get(roomNumber).size()) {
+			int currentSong = (int)roomInfo.get("currentSong");
+			roomInfo.put("currentSong", currentSong+1);
+			nextSongChk = 1;
+		}
+		
+		return nextSongChk;
 	}
 	
 }

@@ -7,22 +7,12 @@ let roomNumber = $('#roomNumber').val();
 let songBoardPk = $('#songBoardPk').val();
 var youtubeUrl = "";
 var player;
-
+let answerReady = '0';
 
 $(document).ready(function(){
-	//게임시작
-	$('#startGame_span').click(()=>{ 
-		$('#startGame_div').remove();
-		var payload = {
-				type : 'gameStart',
-				roomNumber : $('#roomNumber').val() 
-		}
-		ws.send(JSON.stringify(payload));
-	})
-	
-	
+
 	//넘기기
-	$('#skip_span').click(()=>{
+	$('#skip_div').click(()=>{
 		skipSongBtn()
 	})
 })
@@ -59,7 +49,7 @@ function wsEvt() {
 					receiveMessageType(jsonObject)
 					break;
 				case 'gameStart':
-					gameStartType();
+					gameStartType(jsonObject);
 					break;
 				case 'nextSong':
 					nextSongType(jsonObject)
@@ -68,7 +58,13 @@ function wsEvt() {
 					skipSong(jsonObject);
 					break;
 				case 'ready':
-					readyChk(jsonObject);
+					receiveReady(jsonObject);
+					break;
+				case 'readyCencel' :
+					receiveReadyCencel(jsonObject);
+					break;
+				case 'nextSongChk' :
+					nextSongChk(jsonObject);
 					break;
 			}
 			
@@ -85,12 +81,12 @@ function wsEvt() {
 
 
 function send() {
-	var msg = $("#chatInput").val();
 	var payload = {
 			type : 'message',
 			msg : $('#chatInput').val(),
 			sessionId: $('#sessionId').val(),
-			roomNumber : $('#roomNumber').val()
+			roomNumber : $('#roomNumber').val(),
+			answerReady : answerReady
 	}	
 	ws.send(JSON.stringify(payload));
 	$('#chatInput').val("");
@@ -104,7 +100,12 @@ wsOpen()
 //소켓 메세지 type별 처리
 function addSessionIdType(jsonObject){
 	$('#sessionId').val(jsonObject.sessionId)
-	$('.gameBoard_userInfo').append('<div class="userInfo_div"> <div class="userName border"><span class="'+jsonObject.userColor+'">'+ userName +'</span></div> <div class="userPoint border"><span id="'+jsonObject.sessionId+'">0</span></div> </div>')
+	$('.gameBoard_userInfo').append('<div class="userInfo_div" id="'+jsonObject.sessionId+'_div"> <div class="userName border"><span class="'+jsonObject.userColor+'">'+ userName +'</span></div> <div class="userPoint border"><span id="'+jsonObject.sessionId+'">0</span></div> </div>')
+	if(jsonObject.reader == jsonObject.sessionId){
+		$('.gameBoard_songInfo').prepend('<div class="startGame_div" id="startGame_div" onclick="startGame()"><span id="startGame_span" >시작하기</span></div>');
+	}else{
+		$('.gameBoard_songInfo').prepend('<div class="startGame_div" id="readyGame_div" onclick="ready()"><span id="readyGame_span">레디</span></div>')
+	}
 	youtubeUrl = jsonObject.youtubeUrl;
 	var tag = document.createElement('script');
 	tag.src = "https://www.youtube.com/iframe_api";
@@ -119,7 +120,7 @@ function joinUserType(jsonObject){
 	}else{
 		//다른사람정보를 추가
 		for(i = 0; i < jsonObject.userList.length; i++){
-			$('.gameBoard_userInfo').append('<div class="userInfo_div" id="'+jsonObject.userList[i].sessionId+'_div"> <div class="userName"><span class="'+jsonObject.userList[i].userColor+'">'+ jsonObject.userList[i].userName +'</span></div> <div class="userPoint"><span id="'+jsonObject.userList[i].sessionId+'_span">0</span></div> </div>')
+			$('.gameBoard_userInfo').append('<div class="userInfo_div" id="'+jsonObject.userList[i].sessionId+'_div"> <div class="userName"><span class="'+jsonObject.userList[i].userColor+'">'+ jsonObject.userList[i].userName +'</span></div> <div class="userPoint"><span id="'+jsonObject.userList[i].sessionId+'_span">0</span></div></div>')
 		}
 		
 	}
@@ -129,10 +130,19 @@ function leftUserType(jsonObject){$('#'+jsonObject.sessionId+'_div').remove(); }
 
 function receiveMessageType(jsonObject){
 	if(jsonObject.answerChk == 1){ //정답일 경우
+		answerReady = 0;
 		$("#chatData").append("<p> 정답 : " + jsonObject.msg + "</p>");
 		//10초후 다음노래
-		nextSongCount(10)
-		youtubeUrl = jsonObject.youtubeUrl;	
+		if(jsonObject.youtubeUrl == "" || jsonObject.youtubeUrl == null || jsonObject.youtubeUrl == undefined){
+			alert('마지막 노래 입니다.');
+		}else{
+			youtubeUrl = jsonObject.youtubeUrl;	
+			$('.gameBoard_songInfo').prepend('<div class="loading_div" id="loading_nextSong_div"><span class="loading_span">잠시 후 다음 노래로 넘어갑니다.</span></div>');
+			setTimeout(()=>{
+				nextSong();
+			},10000)	
+		}
+		
 		
 	}else{ //정답이 아닐 경우
 		let sessionId = $('#sessionId').val();
@@ -145,85 +155,21 @@ function receiveMessageType(jsonObject){
 	}	
 }
 
-function gameStartType(){
-	//3초 카운트
-	countDown(3);
-	// 4초후 게임 시작
-	setTimeout(()=>{
-		player.playVideo();
-	},3000)	
-
-
-}
-
-function nextSongType(jsonObject){
-	youtubeUrl = jsonObject.youtubeUrl;
-	nextSong()
-}
-
 function skipSong(jsonObject){
-	if(jsonObject.youtubeUrl != null){
+	if(jsonObject.skipChk == 1){
+		answerReady = 0;
 		youtubeUrl = jsonObject.youtubeUrl;
 		nextSong();
-	}else if(jsonObject.skipChk != null){
+	}else if(jsonObject.skipChk == -1){
+		answerReady = 0;
 		alert('마지막 노래 입니다');
-	}else{
+	}else if(jsonObject.skipChk == 0){
 		$('#skipCount_div').css('display','flex')
-		$('#skipCount_span').html("넘기기 : " + jsonObject.skipNum);
-	}
-}
-
-function readyChk(jsonObject){
-	if(jsonObject.readyChk == 1){
-		$('#skipCount_div').css('display','none');
-		gameStartType();
+		$('#skip_count_span').html(" : " + jsonObject.skipCount);
 	}
 }
 
 //ㅡㅡㅡㅡㅡ소켓 메세지 type별 처리 끝
-
-//카운트다운
-function countDown(i){
-	let interval = setInterval(()=>{
-		$('#startGame_div').remove();
-		$('.gaomeBoard_songInfo').append('<div class="border startGame_div" id="startGame_div"><span>'+ i +'</span></div>');
-		if(i == 0){
-			$('#startGame_div').remove();
-			$('#skip_div').css('display', 'flex');
-			clearInterval(interval)
-		}
-		i--
-	},1000,i)	
-}
-
-
-//10초후 다음 노래
-function nextSongCount(i){
-	let nextSongInterval = setInterval(()=>{
-		if(i == 0){
-			clearInterval(nextSongInterval)
-			if(youtubeUrl == ''){
-				player.stopVideo()
-				alert('마지막 노래 입니다.')
-			}else{
-				nextSong()
-			}
-		}
-		i--
-	}, 1000, i)
-}
-
-
-//다음노래 메세지 소켓 전송
-function skipSongBtn(){
-	var payload = {
-			type : 'skipSong',
-			roomNumber : $('#roomNumber').val() 
-	}
-	$('#skip_div').css('display', 'none');
-	ws.send(JSON.stringify(payload));
-}
-
 
 
 //ㅡㅡㅡ 유튜브 iframe apiㅡㅡㅡㅡ
@@ -252,9 +198,104 @@ function nextSong(){
 	$('#youtubePlayer').append('<div id="player"></div>')
 	onYouTubeIframeAPIReady()
 	var payload = {
-			type : 'ready',
+			type : 'nextSongChk',
 			roomNumber : $('#roomNumber').val() 
 	}
 	ws.send(JSON.stringify(payload));
 	
+}
+
+function ready(){
+	$('#readyGame_div').remove();
+	$('.gameBoard_songInfo').prepend('<div class="startGame_div disable_evt disable_cursor" id="readyCancel_div" onclick="readyCencel()"><span id="readyCancel_span">레디 취소</span></div>')
+	setTimeout(()=>{
+		$('#readyCancel_div').removeClass('disable_evt');
+		$('#readyCancel_div').removeClass('disable_cursor');
+	}, 2000);
+	var payload = {
+			type : 'ready',
+			roomNumber : $('#roomNumber').val()
+	}
+	ws.send(JSON.stringify(payload));
+}
+
+function receiveReady(jsonObject){
+	$('#'+jsonObject.sessionId+'_div').append('<div class="ready_div" id="'+jsonObject.sessionId+'_ready_div">READY</div>')
+}
+
+function readyCencel(){
+	$('#readyCancel_div').remove();
+	$('.gameBoard_songInfo').prepend('<div class="startGame_div disable_evt disable_cursor" id="readyGame_div" onclick="ready()"><span id="readyGame_span">레디</span></div>')
+	setTimeout(()=>{
+		$('#readyGame_div').removeClass('disable_evt');
+		$('#readyGame_div').removeClass('disable_cursor');
+	}, 2000);
+	
+		var payload = {
+			type : 'readyCencel',
+			roomNumber : $('#roomNumber').val()
+	}
+	ws.send(JSON.stringify(payload));
+}
+
+function receiveReadyCencel(jsonObject){
+	$('#'+jsonObject.sessionId+'_ready_div').remove();
+	
+}
+
+//게임 시작
+function startGame(){
+	$('#startGame_div').remove();
+	var payload = {
+				type : 'gameStart',
+				roomNumber : $('#roomNumber').val() 
+		}
+	ws.send(JSON.stringify(payload));
+	
+}
+
+function gameStartType(jsonObject){
+	answerReady = '0';
+	if(jsonObject.readyChk == 1){
+		$('#readyCancel_div').remove();
+		$('#ready_div').remove();
+		$('.ready_div').remove();
+		$('.gameBoard_songInfo').prepend('<div class="loading_div" id="loading_div"><span class="loading_span">곧 게임이 시작됩니다. !!!</span></div>');
+		setTimeout(()=>{
+			$('#loading_div').remove();
+			$('#skip_div').css('display', 'flex');
+			answerReady = '1';
+			player.playVideo();
+		},3000)		
+	}else{
+		alert('레디하지 않은 인원이 있습니다.')
+		$('.gameBoard_songInfo').prepend('<div class="startGame_div" id="startGame_div" onclick="startGame()"><span id="startGame_span" >시작하기</span></div>');
+	}
+
+}
+
+
+//다음노래 메세지 소켓 전송
+function skipSongBtn(){
+	var payload = {
+			type : 'skipSong',
+			roomNumber : $('#roomNumber').val() 
+	}
+	$('#skip_div').addClass('disable_evt', 'disable_cursor');
+	ws.send(JSON.stringify(payload));
+}
+
+function nextSongChk(jsonObject){
+	if(jsonObject.nextSongChk == 1){
+		$('#skip_div').css('display', 'none');
+		$('#skip_div').removeClass('disable_evt', 'disable_cursor');
+		$('#loading_nextSong_div').remove();
+		$('.gameBoard_songInfo').prepend('<div class="loading_div" id="loading_div"><span class="loading_span">곧 노래가 시작됩니다. !!!</span></div>');
+		setTimeout(()=>{
+			$('#loading_div').remove();
+			$('#skip_div').css('display', 'flex');
+			answerReady = '1';
+			player.playVideo();
+		},3000)	
+	}
 }

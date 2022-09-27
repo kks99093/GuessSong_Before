@@ -86,8 +86,11 @@ public class BoardController {
 	@PostMapping("/board/multiGameBoard")
 	public String multiGameBoardPost(UserInfoParam userInfoParam, Model model, GameRoomParam gameRoomParam, SongBoardParam songBoardParam) {
 		GameRoom gameRoom = boardService.selRoomNumber(gameRoomParam, userInfoParam, songBoardParam);
-		if(userInfoParam.getUserRole() == null) {
-			userInfoParam.setUserRole(0);
+		int songchk = boardService.selSongInfo(songBoardParam);
+		if(songchk == 0) {
+			model.addAttribute("msg", "해당 게임에는 등록된 노래가 존재하지 않습니다. ");
+			model.addAttribute("url", "/board/main");
+			return "/board/err";
 		}
 		model.addAttribute("userInfo", userInfoParam);
 		model.addAttribute("gameRoom", gameRoom);
