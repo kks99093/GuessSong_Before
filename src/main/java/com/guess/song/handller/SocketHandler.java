@@ -214,10 +214,6 @@ public class SocketHandler extends TextWebSocketHandler{
 			}
 		}
 		
-		//인원수 갱신
-		int headCount = roomUserInfo.get(roomNumber).size();
-		boardService.updHeadCount(roomNumber, headCount);
-		
 		// 방에 있는 사람들에게 sessionId를 보내 클라이언트 유저목록에서 지움
 		for(String key : userList.keySet()) {
 			JSONObject jsonObject = new JSONObject();
@@ -231,12 +227,22 @@ public class SocketHandler extends TextWebSocketHandler{
 		//방에 사람이 0명이면 게임방 삭제
 		userList = roomUserInfo.get(roomNumber);
 		if(userList.size() < 1 && !roomNumber.equals("")) {
-			boardService.delGameRoom(roomNumber);
+			HashMap<String, Object> roomInfo = roomList.get(roomNumber);
+			if(roomInfo.get("currentSong") == null) {
+				boardService.delGameRoom(roomNumber);
+			}
+		}else {
+			//인원수 갱신
+			int headCount = roomUserInfo.get(roomNumber).size();
+			boardService.updHeadCount(roomNumber, headCount);
 		}
-
 
 		super.afterConnectionClosed(session, status);
 	}
+	
+	
+	
+	
 	
 	
 	//ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ Not Override 메서드 ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
@@ -375,6 +381,8 @@ public class SocketHandler extends TextWebSocketHandler{
 		int headCount = roomUserInfo.get(roomNumber).size();
 		if(readyHead == headCount) {
 			readyChk = 1;
+			//게임이 시작됐으면 게임목록에서 이 게임방 삭제
+			boardService.delGameRoom(roomNumber);
 		}
 		return readyChk;
 	}

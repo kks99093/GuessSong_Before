@@ -79,5 +79,11 @@ public class Utils {
 	public static String getBcryptPw(String salt, String pw) {
 		return BCrypt.hashpw(pw, salt);
 	}
+	
+	public static String htmlTagChg(String beforeText) {
+		beforeText.replaceAll("<", "&lt");
+		beforeText.replaceAll(">", "&gt");
+		return beforeText;
+	}
 
 }

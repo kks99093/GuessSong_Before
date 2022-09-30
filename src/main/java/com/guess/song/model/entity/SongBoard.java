@@ -22,10 +22,13 @@ public class SongBoard {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer boardPk;
 	
+	@Column(nullable = false, length = 50)
 	private String title;
 	
+	@Column(nullable = false, length = 50)
 	private String password;
 	
+	@Column(nullable = false, length = 50)
 	private String salt;
 	
 	private String img;

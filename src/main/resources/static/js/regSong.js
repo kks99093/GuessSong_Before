@@ -2,6 +2,9 @@
  * 
  */
  let trNumber = $('#trNumber').val();
+ const regTypeTitle = /^.{3,30}$/;
+ const regTypePw = /^[a-z0-9]{3,6}$/;
+
 	$(document).ready(function(){
 		$('#add_songList_btn').click(function(){
 			trNumber++
@@ -16,13 +19,15 @@
 	
 	function submitChk(){
 		let title = $('#title').val();
+		title = title.trim();
 		let password = $('#password').val();
-		if(title == null || title == ""){
-			alert('제목을 입력해 주세요')
+		password = password.trim();
+		if(title == null || title == "" || !regTypeTitle.test(title)){
+			alert('제목은 3~30글자를 입력해 주세요')
 			return false;
-		}else if((password == null || password == "")){
-			alert('비밀번호를 입력해 주세요')
+		}else if(password == null || password == "" || !regTypePw.test(password)){
+			alert('비밀번호는 영어(소문자),숫자로 3~6글자를 입력해 주세요')
 			return false;
 		}
-		return true;
+		return false;
 	}

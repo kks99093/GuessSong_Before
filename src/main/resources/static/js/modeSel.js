@@ -2,52 +2,9 @@
  * 
  */
 let modeSel = 0;
+const regTypeUserName = /^[가-힣a-zA-z\s]{1,6}$/;
+const regTypeTitle = /^.{3,30}$/;
  $(document).ready(function(){
-	/*
-		$('#soloPlay_div').click(function(){
-			var boardPk = $('#boardPk').val()
-			var userName = $('#userName').val()
-			if(userName == '' || userName == null || userName == undefined){
-				alert('닉네임을 입력해 주세요')
-				return
-			}else{
-				location.href = "/board/soloGameBoard?boardPk="+boardPk+"&userName="+userName;	
-			}
-			
-		})		
-		
-		$('#multiPlay_div').click(function(){
-			var boardPk = $('#boardPk').val();
-			var userName = $('#userName').val();
-			
-			if(userName == '' || userName == null || userName == undefined){
-				alert('닉네임을 입력해 주세요')
-				return
-			}else{
-				var form = document.createElement('form');
-				form.setAttribute('method', 'post');
-			    form.setAttribute('action', '/board/multiGameBoard');
-				document.charset = 'UTF-8';
-				var params = {
-						boardPk : boardPk,
-						userName : userName,
-						createRoom : 1,
-						userRole : 1
-				}
-				for(var key in params){
-					var hiddenField = document.createElement('input');
-				      hiddenField.setAttribute('type', 'hidden');
-				      hiddenField.setAttribute('name', key);
-				      hiddenField.setAttribute('value', params[key]);
-				      form.appendChild(hiddenField);
-				}
-				
-				document.body.appendChild(form);
-				form.submit();	
-			}
-		})
-		*/
-		
 		
 		$('#soloPlay_div').click(function(){
 			modeSel = 1
@@ -81,19 +38,19 @@ let modeSel = 0;
 			password = password.trim();
 			if(modeSel == 1){
 				$('#createRoomFrm').attr('action', '/board/soloGameBoard')
-				if(userName == null || userName == ''){
-					alert('닉네임을 입력해 주세요')
+				if(userName == null || userName == '' || !regTypeUserName.test(userName)){
+					alert('닉네임을 1~6글자로 입력해 주세요')
 					return;
 				}else{
 					$('#createRoomFrm').submit();
 				}				
 			}else if(modeSel == 2){
 				$('#createRoomFrm').attr('action', '/board/multiGameBoard')
-				if(userName == null || userName == ''){
-					alert('닉네임을 입력해 주세요')
+				if(userName == null || userName == '' || !regTypeUserName.test(userName)){
+					alert('닉네임을 1~6글자로 입력해 주세요')
 					return ;
-				}else if(title == null || title == ''){
-					alert('방제목을 입력해 주세요')
+				}else if(title == null || title == '' || !regTypeTitle.test(title)){
+					alert('방제목을 3~30글자로 입력해 주세요')
 					return ;
 				}else{
 					$('#createRoomFrm').submit();

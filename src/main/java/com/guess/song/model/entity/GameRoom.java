@@ -21,18 +21,23 @@ public class GameRoom {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer roomPk;
 	
+	@Column(nullable = false, length = 100)
 	private String title;
 	
 	private String salt;
 	
 	private String password;
 	
+	@Column(nullable = false, length = 50)
 	private String reader;
 	
+	@Column(nullable = false, length = 50)
 	private int amount;
 	
+	@Column(nullable = false, length = 50)
 	private int headCount;
-
+	
+	@Column(nullable = false, length = 50)
 	private int boardPk;
 	
 	@Column

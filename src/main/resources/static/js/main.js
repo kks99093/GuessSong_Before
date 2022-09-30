@@ -111,6 +111,12 @@
 	
 	function searchBoard(){
 		let searchText = $('#searchText').val()
-		location.href = "/board/main?searchText="+searchText;
+		searchText = searchText.trim();
+		if(searchText.length > 20){
+			alert('검색은 20글자 이하로만 가능합니다.')
+		}else{
+			location.href = "/board/main?searchText="+searchText;	
+		}
+		
 	}
 	

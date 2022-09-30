@@ -66,7 +66,10 @@ public class BoardService {
 			// 그냥 다 지웠다가 다시 저장하는게 맞을거같은데 어떠려나
 			delSong(songBoard.getBoardPk());
 		}
-		songBoard.setTitle(songInfoParam.getTitle());
+		
+		String title = Utils.htmlTagChg(songInfoParam.getTitle());
+		
+		songBoard.setTitle(title);
 		String salt = Utils.getSalt();
 		String cryptPw = Utils.getBcryptPw(salt, songInfoParam.getPassword());
 		songBoard.setSalt(salt);
@@ -93,9 +96,11 @@ public class BoardService {
 				continue;
 			}
 			
-			songInfo.setAnswer(songInfoParam.getAnswer().get(i));
+			String answer = Utils.htmlTagChg(songInfoParam.getAnswer().get(i));
+			songInfo.setAnswer(answer);
 			songInfo.setYoutubeUrl(youtubeUrl);
-			songInfo.setHint(songInfoParam.getHint().get(i));
+			String hint = Utils.htmlTagChg(songInfoParam.getHint().get(i));
+			songInfo.setHint(hint);
 			songInfo.setSongBoard(songBoard);
 			songRep.save(songInfo);
 		}
@@ -150,9 +155,11 @@ public class BoardService {
 		if(gameRoomParam.getCreateRoom() == 1) {
 			//방이 없을경우 방 생성
 			GameRoom gameRoom = new GameRoom();
-			gameRoom.setTitle(gameRoomParam.getTitle());
+			String title = Utils.htmlTagChg(gameRoomParam.getTitle());
+			gameRoom.setTitle(title);
 			gameRoom.setBoardPk(songBoardParam.getBoardPk());
-			gameRoom.setReader(userInfoParam.getUserName());
+			String reader = Utils.htmlTagChg(userInfoParam.getUserName());
+			gameRoom.setReader(reader);
 			gameRoom.setAmount(gameRoomParam.getAmount());
 			gameRoom.setHeadCount(1);
 			if(gameRoomParam.getPassword() != null && !gameRoomParam.getPassword().equals("")) {
@@ -166,8 +173,6 @@ public class BoardService {
 		}else {
 			//방이 있을 경우 그 방의 정보를 가져다줌
 			GameRoom gameRoom = gameRoomRep.findByRoomPk(gameRoomParam.getRoomPk());
-			
-			//나중에 비밀번호 넣기
 			result = gameRoom;
 		}
 		
