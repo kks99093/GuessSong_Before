@@ -76,5 +76,15 @@ body{
 }
 
 .multi_div{
-	display: none;
+	display: block;
+}
+
+#create_btn{
+	padding : 10px;
+	border : 1px solid black;
+	border-radius: 10px;
+}
+
+#create_btn:hover{
+	cursor : pointer;
 }

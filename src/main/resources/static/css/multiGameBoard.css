@@ -201,6 +201,12 @@ body{
 	background-color : yellow;
 }
 
+.reader_mark{
+	text-align: center;
+    font-weight: bold;
+    font-size: 20px;
+}
+
 .loading_div{
 	padding : 15px;
 	text-align : center;
@@ -208,7 +214,16 @@ body{
 	font-weight: bold;
 }
 
+.alertMsg{
+	text-align: center;
+    background: oldlace;
+}
 
+.answerMsg{
+	text-align: center;
+    font-size: 25px;
+    background-color: ivory;
+}
 
 
 

@@ -16,7 +16,6 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import com.guess.song.model.dto.SongInfoDTO;
-import com.guess.song.model.entity.GameRoom;
 import com.guess.song.service.BoardService;
 import com.guess.song.util.Utils;
 
@@ -77,7 +76,7 @@ public class SocketHandler extends TextWebSocketHandler{
 			//본인한테 보낼거 : 다른사람의 sessionId와 닉네임 ==> userList를 보내면 될듯
 			HashMap<String, Object> userList = roomUserInfo.get(roomNumber); 
 			//본인한테 이미 접속해있던 userList를 보냄
-			sendUserList(session, userList);
+			sendUserList(session, userList, roomNumber);
 			//이미 입장해 있는 다른 유저에게 본인 닉네임과 sessionId를 보냄 (메세지를 보낼때는 해당유저의 session을 가져와서 .sendMessage 메서드로 보냄)
 			int songNumber = 0; //이걸로 방 생성인지 참가인지 구분
 			joinRoom(session, roomNumber ,songNumber, userName); //해당방의 userList에 입장한사람의 정보를 추가
@@ -184,7 +183,9 @@ public class SocketHandler extends TextWebSocketHandler{
 			for(String key : userList.keySet()) {
 				WebSocketSession wss = (WebSocketSession)((HashMap<String, Object>) userList.get(key)).get("session");
 				try {
-					wss.sendMessage(new TextMessage(jsonObject.toString()));
+					synchronized(wss) {
+						wss.sendMessage(new TextMessage(jsonObject.toString()));
+					}
 				}catch(Exception e) {
 					e.printStackTrace();
 				}
@@ -203,24 +204,19 @@ public class SocketHandler extends TextWebSocketHandler{
 		
 		String roomNumber = "";
 		String mySessionId = session.getId();
+		String leftUser = "";
+		String color = "";
 		HashMap<String, Object> userList = new HashMap<String, Object>();
 		//모든 방을 돌며 해당 유저의 sessionId를 지운다(사실상 하나의 방에서만 지움)
 		for(String key : roomList.keySet()) {
 			userList = roomUserInfo.get(key);
 			if(userList.get(mySessionId) != null) {
+				leftUser = (String)((HashMap<String, Object>)userList.get(mySessionId)).get("userName");
+				color = (String)((HashMap<String, Object>)userList.get(mySessionId)).get("color");
 				userList.remove(mySessionId);
 				roomNumber = key;
 				break;
 			}
-		}
-		
-		// 방에 있는 사람들에게 sessionId를 보내 클라이언트 유저목록에서 지움
-		for(String key : userList.keySet()) {
-			JSONObject jsonObject = new JSONObject();
-			jsonObject.put("type", "left");
-			jsonObject.put("sessionId", mySessionId);
-			WebSocketSession wss = (WebSocketSession)((HashMap<String, Object>) userList.get(key)).get("session");
-			wss.sendMessage(new TextMessage (jsonObject.toString()));
 		}
 		
 		
@@ -234,8 +230,46 @@ public class SocketHandler extends TextWebSocketHandler{
 		}else {
 			//인원수 갱신
 			int headCount = roomUserInfo.get(roomNumber).size();
-			boardService.updHeadCount(roomNumber, headCount);
+			
+			//리더 확인후 교체 , DB에 인원수 + 리더 갱신
+			String gameReader = (String) roomList.get(roomNumber).get("reader");
+			String readerId = null;
+			if(mySessionId.equals(gameReader)) {
+				for(String key : userList.keySet()) {
+					gameReader = (String)((HashMap<String, Object>) userList.get(key)).get("userName");
+					roomList.get(roomNumber).put("reader", key);
+					readerId = key;
+					break;
+				}
+				boardService.updHeadCount(roomNumber, headCount, gameReader);
+				roomList.get(roomNumber).put("ready", 1);
+			}else {
+				gameReader = null;
+				boardService.updHeadCount(roomNumber, headCount, gameReader);
+			}
+			
+			
+			// 방에 있는 사람들에게 sessionId를 보내 클라이언트 유저목록에서 지움
+			for(String key : userList.keySet()) {
+				JSONObject jsonObject = new JSONObject();
+				jsonObject.put("type", "left");
+				jsonObject.put("sessionId", mySessionId);
+				jsonObject.put("reader", readerId);
+				jsonObject.put("leftUser", leftUser);
+				jsonObject.put("userColor", color);
+				WebSocketSession wss = (WebSocketSession)((HashMap<String, Object>) userList.get(key)).get("session");
+				wss.sendMessage(new TextMessage (jsonObject.toString()));
+			}
 		}
+		
+
+		
+		
+		
+
+		
+		
+
 
 		super.afterConnectionClosed(session, status);
 	}
@@ -274,14 +308,13 @@ public class SocketHandler extends TextWebSocketHandler{
 		
 		//유저수 갱신
 		int headCount = roomUserInfo.get(roomNumber).size();
-		boardService.updHeadCount(roomNumber, headCount);
+		boardService.updHeadCount(roomNumber, headCount, null);
 	}
 	
 	
 	@SuppressWarnings("unchecked")
-	public void sendUserList(WebSocketSession session, HashMap<String, Object> userListParam) {
+	public void sendUserList(WebSocketSession session, HashMap<String, Object> userListParam, String roomNumber) {
 		List<HashMap<String, String>> userList = new ArrayList<>();
-		
 		for(String key : userListParam.keySet()) {
 			HashMap<String, String> userInfo = new HashMap<>();
 			String userName = (String)((HashMap<String, Object>) userListParam.get(key)).get("userName");
@@ -291,8 +324,11 @@ public class SocketHandler extends TextWebSocketHandler{
 			userInfo.put("userName", userName);
 			userList.add(userInfo);
 		}
+		
+		String reader = (String)((HashMap<String, Object>)roomList.get(roomNumber)).get("reader");
 		JSONObject jsonObject = new JSONObject();
 		jsonObject.put("type", "join");
+		jsonObject.put("reader", reader);
 		jsonObject.put("userList", userList);
 		try {
 			session.sendMessage(new TextMessage(jsonObject.toString()));
@@ -315,13 +351,15 @@ public class SocketHandler extends TextWebSocketHandler{
 		userInfo.put("userName", userName);
 		userInfo.put("sessionId", session.getId());
 		userInfo.put("userColor", userColor);
+		
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("type", "join");
+		jsonObject.put("user", userInfo);
+		jsonObject.put("userColor", userColor);
 		for(String key : userList.keySet()) {
 			if(key.equals(session.getId())) {
 				continue;
 			}
-			JSONObject jsonObject = new JSONObject();
-			jsonObject.put("type", "join");
-			jsonObject.put("user", userInfo);
 			WebSocketSession wss = (WebSocketSession)((HashMap<String, Object>) userList.get(key)).get("session");
 			try {
 				wss.sendMessage(new TextMessage(jsonObject.toString()));
@@ -372,6 +410,7 @@ public class SocketHandler extends TextWebSocketHandler{
 	public void userReady(String roomNumber, int count) {
 		int readyHead = (int) roomList.get(roomNumber).get("ready") + count;
 		roomList.get(roomNumber).put("ready", readyHead);
+		System.out.println(readyHead);
 
 	}
 	
@@ -445,6 +484,7 @@ public class SocketHandler extends TextWebSocketHandler{
 			int currentSong = (int)roomInfo.get("currentSong");
 			roomInfo.put("currentSong", currentSong+1);
 			nextSongChk = 1;
+			roomInfo.remove("nextSongChk");
 		}
 		
 		return nextSongChk;

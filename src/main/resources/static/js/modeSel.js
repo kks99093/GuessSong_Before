@@ -1,33 +1,11 @@
 /**
  * 
  */
-let modeSel = 0;
+let modeSel = 2;
 const regTypeUserName = /^[가-힣a-zA-z\s]{1,6}$/;
 const regTypeTitle = /^.{3,30}$/;
  $(document).ready(function(){
-		
-		$('#soloPlay_div').click(function(){
-			modeSel = 1
-			$('#soloPlay_div').css('background-color', '#000000');
-			$('#soloPlay_div').css('color', '#FFFFFF');
-			$('#multiPlay_div').css('background-color', '#FFFFFF');
-			$('#multiPlay_div').css('color', '#000000');
-			$('.multi_div').css('display', 'none');
-			$('.multi_input').val('');
-			
-		})
-		
-		
-		$('#multiPlay_div').click(function(){
-			modeSel = 2
-			$('#soloPlay_div').css('background-color', '#FFFFFF');
-			$('#soloPlay_div').css('color', '#000000');
-			$('#multiPlay_div').css('background-color', '#000000');
-			$('#multiPlay_div').css('color', '#FFFFFF');
-			$('.multi_div').css('display', 'block');
-						
-			
-		})		
+	
 		
 		$('#create_btn').click(function(){
 			let userName = $('#userName').val();

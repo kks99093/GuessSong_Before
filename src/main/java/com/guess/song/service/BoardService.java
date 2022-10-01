@@ -291,11 +291,17 @@ public class BoardService {
 		return roomInfo;
 	}
 	
-	public void updHeadCount(String roomNumberStr, int headCount) {
+	public void updHeadCount(String roomNumberStr, int headCount, String gameReader) {
 		int roomNumber = Integer.parseInt(roomNumberStr);
 		GameRoom gameRoom = gameRoomRep.findByRoomPk(roomNumber);
-		gameRoom.setHeadCount(headCount);
-		gameRoomRep.save(gameRoom);
+		if(gameRoom != null && gameReader != null) {
+			gameRoom.setReader(gameReader);
+		}
+		if(gameRoom != null) {
+			gameRoom.setHeadCount(headCount);
+			gameRoomRep.save(gameRoom);
+		}
+		
 	}
 
 }

@@ -85,7 +85,6 @@ public class BoardController {
 
 	@PostMapping("/board/multiGameBoard")
 	public String multiGameBoardPost(UserInfoParam userInfoParam, Model model, GameRoomParam gameRoomParam, SongBoardParam songBoardParam) {
-		GameRoom gameRoom = boardService.selRoomNumber(gameRoomParam, userInfoParam, songBoardParam);
 		if(songBoardParam.getBoardPk() != null) {
 			int songchk = boardService.selSongInfo(songBoardParam);
 			if(songchk == 0) {
@@ -94,6 +93,8 @@ public class BoardController {
 				return "/board/err";
 			}
 		}
+		GameRoom gameRoom = boardService.selRoomNumber(gameRoomParam, userInfoParam, songBoardParam);
+
 		model.addAttribute("userInfo", userInfoParam);
 		model.addAttribute("gameRoom", gameRoom);
 		return "/board/multiGameBoard";

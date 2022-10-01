@@ -8,6 +8,7 @@ let songBoardPk = $('#songBoardPk').val();
 var youtubeUrl = "";
 var player;
 let answerReady = '0';
+let gameStartChk = 0;
 
 $(document).ready(function(){
 
@@ -103,6 +104,8 @@ function addSessionIdType(jsonObject){
 	$('.gameBoard_userInfo').append('<div class="userInfo_div" id="'+jsonObject.sessionId+'_div"> <div class="userName border"><span class="'+jsonObject.userColor+'">'+ userName +'</span></div> <div class="userPoint border"><span id="'+jsonObject.sessionId+'">0</span></div> </div>')
 	if(jsonObject.reader == jsonObject.sessionId){
 		$('.gameBoard_songInfo').prepend('<div class="startGame_div" id="startGame_div" onclick="startGame()"><span id="startGame_span" >시작하기</span></div>');
+		$('.reader_mark').remove();
+		$('#'+jsonObject.reader+'_div').append('<div class="reader_mark">방장</div>')
 	}else{
 		$('.gameBoard_songInfo').prepend('<div class="startGame_div" id="readyGame_div" onclick="ready()"><span id="readyGame_span">레디</span></div>')
 	}
@@ -117,21 +120,38 @@ function joinUserType(jsonObject){
 	if(jsonObject.user != null){
 		//입장한 사람의 정보를 추가
 		$('.gameBoard_userInfo').append('<div class="userInfo_div" id="'+jsonObject.user.sessionId+'_div"> <div class="userName"><span class="'+jsonObject.user.userColor+'">'+ jsonObject.user.userName +'</span></div> <div class="userPoint"><span id="'+jsonObject.user.sessionId+'">0</span></div> </div>')
+		$("#chatData").append('<p class="chatData alertMsg "><span class="'+jsonObject.userColor+'">' + jsonObject.user.userName + '</span> 님이 방에 입장하셨습니다.</p>');
 	}else{
 		//다른사람정보를 추가
 		for(i = 0; i < jsonObject.userList.length; i++){
 			$('.gameBoard_userInfo').append('<div class="userInfo_div" id="'+jsonObject.userList[i].sessionId+'_div"> <div class="userName"><span class="'+jsonObject.userList[i].userColor+'">'+ jsonObject.userList[i].userName +'</span></div> <div class="userPoint"><span id="'+jsonObject.userList[i].sessionId+'_span">0</span></div></div>')
+			$('.reader_mark').remove();
+			$('#'+jsonObject.reader+'_div').append('<div class="reader_mark">방장</div>')
 		}
 		
 	}
 }
 
-function leftUserType(jsonObject){$('#'+jsonObject.sessionId+'_div').remove(); }
+function leftUserType(jsonObject){
+	$("#chatData").append('<p class="chatData alertMsg"><span class="'+jsonObject.userColor+'">' + jsonObject.leftUser + '</span> 님이 방에서 나가셨습니다.</p>');
+	$('#'+jsonObject.sessionId+'_div').remove();
+	if(jsonObject.reader != null){
+		$('#'+jsonObject.reader+'_div').append('<div class="reader_mark">방장</div>')
+		let mySessionId = $('#sessionId').val();
+		$('.ready_div').remove();
+		if(mySessionId == jsonObject.reader && gameStartChk == 0){
+			$('#readyGame_div').remove();
+			$('#readyCancel_div').remove();
+			$('.gameBoard_songInfo').prepend('<div class="startGame_div" id="startGame_div" onclick="startGame()"><span id="startGame_span" >시작하기</span></div>');
+		}
+	}
+	 
+	}
 
 function receiveMessageType(jsonObject){
 	if(jsonObject.answerChk == 1){ //정답일 경우
 		answerReady = 0;
-		$("#chatData").append("<p> 정답 : " + jsonObject.msg + "</p>");
+		$("#chatData").append('<p class="answerMsg"> 정답 - <span class="'+jsonObject.userColor+'">'+jsonObject.userName+'</span> : ' + jsonObject.msg + "</p>");
 		//10초후 다음노래
 		if(jsonObject.youtubeUrl == "" || jsonObject.youtubeUrl == null || jsonObject.youtubeUrl == undefined){
 			alert('마지막 노래 입니다.');
@@ -159,6 +179,9 @@ function skipSong(jsonObject){
 	if(jsonObject.skipChk == 1){
 		answerReady = 0;
 		youtubeUrl = jsonObject.youtubeUrl;
+		console.log('ㅇㅇㅇ')
+		$('#skipCount_div').css('display','none')
+		$('#skip_count_span').html('');
 		nextSong();
 	}else if(jsonObject.skipChk == -1){
 		answerReady = 0;
@@ -201,6 +224,7 @@ function nextSong(){
 			type : 'nextSongChk',
 			roomNumber : $('#roomNumber').val() 
 	}
+	console.log('ddddddd')
 	ws.send(JSON.stringify(payload));
 	
 }
@@ -261,6 +285,7 @@ function gameStartType(jsonObject){
 		$('#ready_div').remove();
 		$('.ready_div').remove();
 		$('.gameBoard_songInfo').prepend('<div class="loading_div" id="loading_div"><span class="loading_span">곧 게임이 시작됩니다. !!!</span></div>');
+		gameStartChk = 1;
 		setTimeout(()=>{
 			$('#loading_div').remove();
 			$('#skip_div').css('display', 'flex');
@@ -286,6 +311,7 @@ function skipSongBtn(){
 }
 
 function nextSongChk(jsonObject){
+	console.log(jsonObject.nextSongChk);
 	if(jsonObject.nextSongChk == 1){
 		$('#skip_div').css('display', 'none');
 		$('#skip_div').removeClass('disable_evt', 'disable_cursor');

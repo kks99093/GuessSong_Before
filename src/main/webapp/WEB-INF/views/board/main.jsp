@@ -33,11 +33,11 @@
 				<div class="songBoard_img_div" id="songBoard_img_div" onclick="moveBoard(${songBoard.boardPk})">
 					<div id="board_img_div">
 						<c:choose>
-							<c:when test="${songBoard.img != null }">
-								<img src="/upload/songBoard/${songBoard.img}" width="200" height="200">
+							<c:when test="${songBoard.img == null || songBoard.img == '' }">
+								<img src="/upload/default/headSet.png" width="200" height="200">
 							</c:when>
 							<c:otherwise>
-								<img src="/upload/songBoard/defaultImg.png" width="200" height="200">
+								<img src="/upload/songBoard/${songBoard.img}" width="200" height="200">
 							</c:otherwise>
 						</c:choose>
 					</div>

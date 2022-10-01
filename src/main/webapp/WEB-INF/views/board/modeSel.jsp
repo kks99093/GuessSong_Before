@@ -15,11 +15,8 @@
 	</div>
 	<div class="modSel_container">
 		<div class="mode_div">
-			<div id="soloPlay_div">
-				<span>솔로</span>
-			</div>
 			<div id="multiPlay_div">
-				<span>멀티</span>
+				<span>방 만들기</span>
 			</div>
 		</div>
 		<div class="create_div">
@@ -44,7 +41,7 @@
 				<input type="hidden" name="userRole" value="1">
 				<input type="hidden" name="boardPk" value="${songBoard.boardPk}" >
 				<input type="hidden" name="createRoom" value="1">
-				<div class="create_span"><span id="create_btn">만들기</span></div>
+				<div class="create_div"><span id="create_btn">만들기</span></div>
 			</form>
 		</div>
 	</div>
