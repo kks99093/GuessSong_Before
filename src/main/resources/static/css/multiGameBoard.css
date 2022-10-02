@@ -45,6 +45,10 @@ body{
 	display: none;
 }
 
+#result_div{
+	display: none;
+}
+
 #skipCount_div{
 	display: none;
 }
@@ -225,5 +229,16 @@ body{
     background-color: ivory;
 }
 
+.score_span{
+	font-size : 20px;
+}
 
-
+.songListNum_div{
+	margin: 20px;
+    padding: 10px;
+    font-size: 25px;
+    text-align: center;
+    font-weight: bold;
+    background: #FFFFFF;
+    border-radius: 25px;
+}

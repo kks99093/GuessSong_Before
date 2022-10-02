@@ -1,6 +1,7 @@
 /**
  * 
  */
+
 var ws;
 var userName = $('#userName').val();
 let roomNumber = $('#roomNumber').val();
@@ -9,12 +10,17 @@ var youtubeUrl = "";
 var player;
 let answerReady = '0';
 let gameStartChk = 0;
-
+let totalSongNum = 0;
+var nextSongTimer;
 $(document).ready(function(){
 
 	//넘기기
 	$('#skip_div').click(()=>{
 		skipSongBtn()
+	})
+	
+	$('#result_div').click(()=>{
+		resultSongBtn();
 	})
 })
 
@@ -52,9 +58,6 @@ function wsEvt() {
 				case 'gameStart':
 					gameStartType(jsonObject);
 					break;
-				case 'nextSong':
-					nextSongType(jsonObject)
-					break;
 				case 'skipSong':
 					skipSong(jsonObject);
 					break;
@@ -66,6 +69,9 @@ function wsEvt() {
 					break;
 				case 'nextSongChk' :
 					nextSongChk(jsonObject);
+					break;
+				case 'resultSong' :
+					resultSong(jsonObject);
 					break;
 			}
 			
@@ -101,7 +107,10 @@ wsOpen()
 //소켓 메세지 type별 처리
 function addSessionIdType(jsonObject){
 	$('#sessionId').val(jsonObject.sessionId)
-	$('.gameBoard_userInfo').append('<div class="userInfo_div" id="'+jsonObject.sessionId+'_div"> <div class="userName border"><span class="'+jsonObject.userColor+'">'+ userName +'</span></div> <div class="userPoint border"><span id="'+jsonObject.sessionId+'">0</span></div> </div>')
+	$('.gameBoard_userInfo').append('<div class="userInfo_div" id="'+jsonObject.sessionId+'_div"> <div class="userName border"><span class="'+jsonObject.userColor+'">'+ userName +'</span></div> <div class="userPoint border"><span class="score_span" id="'+jsonObject.sessionId+'_score">0</span></div> </div>')
+	$('#currentSong').html('0');
+	$('#totalSong').html(jsonObject.totalSongNum);
+	totalSongNum = jsonObject.totalSongNum;
 	if(jsonObject.reader == jsonObject.sessionId){
 		$('.gameBoard_songInfo').prepend('<div class="startGame_div" id="startGame_div" onclick="startGame()"><span id="startGame_span" >시작하기</span></div>');
 		$('.reader_mark').remove();
@@ -119,12 +128,12 @@ function addSessionIdType(jsonObject){
 function joinUserType(jsonObject){
 	if(jsonObject.user != null){
 		//입장한 사람의 정보를 추가
-		$('.gameBoard_userInfo').append('<div class="userInfo_div" id="'+jsonObject.user.sessionId+'_div"> <div class="userName"><span class="'+jsonObject.user.userColor+'">'+ jsonObject.user.userName +'</span></div> <div class="userPoint"><span id="'+jsonObject.user.sessionId+'">0</span></div> </div>')
+		$('.gameBoard_userInfo').append('<div class="userInfo_div" id="'+jsonObject.user.sessionId+'_div"> <div class="userName"><span class="'+jsonObject.user.userColor+'">'+ jsonObject.user.userName +'</span></div> <div class="userPoint"><span class="score_span" id="'+jsonObject.user.sessionId+'_score">0</span></div> </div>')
 		$("#chatData").append('<p class="chatData alertMsg "><span class="'+jsonObject.userColor+'">' + jsonObject.user.userName + '</span> 님이 방에 입장하셨습니다.</p>');
 	}else{
 		//다른사람정보를 추가
 		for(i = 0; i < jsonObject.userList.length; i++){
-			$('.gameBoard_userInfo').append('<div class="userInfo_div" id="'+jsonObject.userList[i].sessionId+'_div"> <div class="userName"><span class="'+jsonObject.userList[i].userColor+'">'+ jsonObject.userList[i].userName +'</span></div> <div class="userPoint"><span id="'+jsonObject.userList[i].sessionId+'_span">0</span></div></div>')
+			$('.gameBoard_userInfo').append('<div class="userInfo_div" id="'+jsonObject.userList[i].sessionId+'_div"> <div class="userName"><span class="'+jsonObject.userList[i].userColor+'">'+ jsonObject.userList[i].userName +'</span></div> <div class="userPoint"><span class="score_span" id="'+jsonObject.userList[i].sessionId+'_score">0</span></div></div>')
 			$('.reader_mark').remove();
 			$('#'+jsonObject.reader+'_div').append('<div class="reader_mark">방장</div>')
 		}
@@ -150,23 +159,25 @@ function leftUserType(jsonObject){
 
 function receiveMessageType(jsonObject){
 	if(jsonObject.answerChk == 1){ //정답일 경우
-		answerReady = 0;
+		answerReady = '0';
 		$("#chatData").append('<p class="answerMsg"> 정답 - <span class="'+jsonObject.userColor+'">'+jsonObject.userName+'</span> : ' + jsonObject.msg + "</p>");
+		$('#'+jsonObject.sessionId+'_score').html(''+jsonObject.score+'');
 		//10초후 다음노래
 		if(jsonObject.youtubeUrl == "" || jsonObject.youtubeUrl == null || jsonObject.youtubeUrl == undefined){
-			alert('마지막 노래 입니다.');
+			$('.gameBoard_songInfo').prepend('<div class="loading_div" id="loading_div"><span class="loading_span">곧 게임이 종료됩니다. !!!</span></div>');
+			nextSongTimer = setTimeout(()=>{
+				gameEnd();
+			},10000)	
 		}else{
 			youtubeUrl = jsonObject.youtubeUrl;	
 			$('.gameBoard_songInfo').prepend('<div class="loading_div" id="loading_nextSong_div"><span class="loading_span">잠시 후 다음 노래로 넘어갑니다.</span></div>');
-			setTimeout(()=>{
+			nextSongTimer = setTimeout(()=>{
 				nextSong();
 			},10000)	
 		}
 		
-		
 	}else{ //정답이 아닐 경우
 		let sessionId = $('#sessionId').val();
-		console.log(jsonObject.userName)
 		if(jsonObject.sessionId == sessionId){
 			$("#chatData").append('<p class="my_chat chatData"><span class="'+jsonObject.userColor+'">' +jsonObject.userName + '</span> : ' + jsonObject.msg + '</p>');
 		}else{
@@ -175,19 +186,17 @@ function receiveMessageType(jsonObject){
 	}	
 }
 
+
+
 function skipSong(jsonObject){
 	if(jsonObject.skipChk == 1){
+		clearTimeout(nextSongTimer)
 		answerReady = 0;
 		youtubeUrl = jsonObject.youtubeUrl;
-		console.log('ㅇㅇㅇ')
 		$('#skipCount_div').css('display','none')
 		$('#skip_count_span').html('');
 		nextSong();
-	}else if(jsonObject.skipChk == -1){
-		answerReady = 0;
-		alert('마지막 노래 입니다');
 	}else if(jsonObject.skipChk == 0){
-		$('#skipCount_div').css('display','flex')
 		$('#skip_count_span').html(" : " + jsonObject.skipCount);
 	}
 }
@@ -206,10 +215,13 @@ function youtubePlay(){
 	
 function onYouTubeIframeAPIReady() {
   	player = new YT.Player('player', {
-    height: '300',
-    width: '300',
-    videoId: youtubeUrl, //여기에 비디오 ID를 삽입한다. 
-	//만약에 유튜브 공유 주소가 https://www.youtube.com/watch?v=Wac9LIURW1I라면 v=뒤의 값을 넣는다
+	    height: '300',
+	    width: '300',
+	    videoId: youtubeUrl, //여기에 비디오 ID를 삽입한다. 
+		//만약에 유튜브 공유 주소가 https://www.youtube.com/watch?v=Wac9LIURW1I라면 v=뒤의 값을 넣는다
+		events:{
+			'onStateChange' : onPlayerStateChange
+		}
 	});
 }
 //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
@@ -224,7 +236,6 @@ function nextSong(){
 			type : 'nextSongChk',
 			roomNumber : $('#roomNumber').val() 
 	}
-	console.log('ddddddd')
 	ws.send(JSON.stringify(payload));
 	
 }
@@ -287,6 +298,7 @@ function gameStartType(jsonObject){
 		$('.gameBoard_songInfo').prepend('<div class="loading_div" id="loading_div"><span class="loading_span">곧 게임이 시작됩니다. !!!</span></div>');
 		gameStartChk = 1;
 		setTimeout(()=>{
+			$('#currentSong').html('1');
 			$('#loading_div').remove();
 			$('#skip_div').css('display', 'flex');
 			answerReady = '1';
@@ -311,17 +323,51 @@ function skipSongBtn(){
 }
 
 function nextSongChk(jsonObject){
-	console.log(jsonObject.nextSongChk);
 	if(jsonObject.nextSongChk == 1){
 		$('#skip_div').css('display', 'none');
 		$('#skip_div').removeClass('disable_evt', 'disable_cursor');
 		$('#loading_nextSong_div').remove();
 		$('.gameBoard_songInfo').prepend('<div class="loading_div" id="loading_div"><span class="loading_span">곧 노래가 시작됩니다. !!!</span></div>');
 		setTimeout(()=>{
+			if(totalSongNum == jsonObject.currentSong+1){
+				$('#result_div').css('display', 'flex');
+				//result_div에 결과창 띄우는 함수 추가
+			}else{
+				$('#skip_div').css('display', 'flex');	
+			}
+			$('#currentSong').html(jsonObject.currentSong+1);
 			$('#loading_div').remove();
-			$('#skip_div').css('display', 'flex');
+			
 			answerReady = '1';
 			player.playVideo();
 		},3000)	
 	}
+}
+
+function onPlayerStateChange(event){
+	if(event.data == 0){
+		player.playVideo();
+	}
+}
+
+function resultSongBtn(){
+	let payload = {
+		type : 'resultSong',
+		roomNumber : $('#roomNumber').val()
+	}
+	$('#result_div').addClass('disable_evt', 'disable_cursor');
+	ws.send(JSON.stringify(payload));
+}
+
+function resultSong(jsonObject){
+	if(jsonObject.resultChk == 1){
+		gameEnd(jsonObject);
+	}else{
+		$('#result_count_span').html(" : " + jsonObject.resultCount);
+	}
+}
+
+function gameEnd(jsonObject){
+	clearTimeout(nextSongTimer)
+	console.log(jsonObject)
 }
