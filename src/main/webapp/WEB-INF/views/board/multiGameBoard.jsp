@@ -22,7 +22,7 @@
 			<div class="chatOutput_div border" id="chatData"></div>
 			<div class="chatInput_div">
 				<input type="text" class="chatInput_input" id="chatInput"> 
-				<span class="chat_submit">전송</span>
+				<span class="chat_submit" id="chat_submit">전송</span>
 			</div>
 		</div>
 		<div class="songListNum_div">
@@ -38,6 +38,25 @@
 	<input type="hidden" value="" id="sessionId">
 	<input type="hidden" value="${gameRoom.roomPk }" id="roomNumber">
 	<input type="hidden" value="${gameRoom.boardPk }" id="songBoardPk">		
+</div>
+
+<div class="result_table_div">
+	<h3>게임 결과 </h3>
+	<table class="result_table">
+		<thead class="result_table_thead">
+			<tr class="result_table_tr">
+				<th class="result_table_th">등수</th>
+				<th class="result_table_th">닉네임</th>
+				<th class="result_table_th">점수</th>
+			</tr>
+		</thead>
+		<tbody class="result_table_tbody">
+
+		</tbody>
+	</table>
+	<div class="result_home" id="result_home_btn">
+		<span class="result_home_span">홈 으로</span>
+	</div>
 </div>
 
 <script src="/js/multiGameBoard.js"></script>

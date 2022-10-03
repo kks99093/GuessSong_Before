@@ -109,6 +109,13 @@ public class BoardController {
 		return "/board/gameList";
 	}
 	
+	@GetMapping("/board/test")
+	public String test() {
+
+	
+		return "/board/test";
+	}
+	
 	
 
 	

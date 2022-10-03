@@ -520,17 +520,19 @@ public class SocketHandler extends TextWebSocketHandler{
 		HashMap<String, Object> roomInfo = roomList.get(roomNumber);
 		if(roomInfo.get("nextSongChk") == null) {
 			roomInfo.put("nextSongChk", 1);
-		}else {
+			System.out.println("nextSong = null");
+		}else{
 			roomInfo.put("nextSongChk", (int)roomInfo.get("nextSongChk") + 1);
+			System.out.println("nextSong + 1");
 		}
 		
 		if((int)roomInfo.get("nextSongChk") == roomUserInfo.get(roomNumber).size()) {
 			int currentSong = (int)roomInfo.get("currentSong");
 			roomInfo.put("currentSong", currentSong+1);
 			nextSongChk = 1;
-			roomInfo.remove("nextSongChk");
+			roomInfo.put("nextSongChk", 0);
 		}
-		
+		System.out.println("nextSongChk : " + nextSongChk + ", amount : " + (int)roomInfo.get("nextSongChk"));
 		return nextSongChk;
 	}
 	

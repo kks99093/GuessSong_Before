@@ -22,6 +22,14 @@ $(document).ready(function(){
 	$('#result_div').click(()=>{
 		resultSongBtn();
 	})
+	
+	$('#chat_submit').click(()=>{
+		send();
+	})
+	
+	$('#result_home_btn').click(()=>{
+		location.href = '/board/main';
+	})
 })
 
 
@@ -369,5 +377,28 @@ function resultSong(jsonObject){
 
 function gameEnd(jsonObject){
 	clearTimeout(nextSongTimer)
-	console.log(jsonObject)
+	for(i = 0; i < jsonObject.userList.length; i++){
+		for(j = i+1; j <jsonObject.userList.length; j++){
+			if(jsonObject.userList[j].score > jsonObject.userList[i].score){
+				let userListTemp = jsonObject.userList[i];
+				jsonObject.userList[i] = jsonObject.userList[j];
+				jsonObject.userList[j] = userListTemp; 
+			}	
+		}
+	}
+	
+	$('.gameBoard_div').remove();
+	
+	for(i = 0 ; i < jsonObject.userList.length; i++){
+		let rank = i+1;
+		$('.result_table_tbody').append('<tr><td class="result_table_td num_td" >'+rank+'</td>  <td class="result_table_td name_td '+jsonObject.userList[i].color+'" >'+jsonObject.userList[i].userName+'</td>  <td class="result_table_td score_td" >'+jsonObject.userList[i].score+'</td></tr>')		
+	}
+	
+	$('.result_table_div').css('display', 'flex')
+	
+	
+
+	
+	
+	
 }
