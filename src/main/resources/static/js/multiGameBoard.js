@@ -179,7 +179,13 @@ function receiveMessageType(jsonObject){
 		if(jsonObject.youtubeUrl == "" || jsonObject.youtubeUrl == null || jsonObject.youtubeUrl == undefined){
 			$('.gameBoard_songInfo').prepend('<div class="loading_div" id="loading_div"><span class="loading_span">곧 게임이 종료됩니다. !!!</span></div>');
 			nextSongTimer = setTimeout(()=>{
-				gameEnd();
+				let payload = {
+					type : 'resultSong',
+					roomNumber : $('#roomNumber').val(),
+					answerToEnd : true
+				}
+				ws.send(JSON.stringify(payload));
+				
 			},10000)	
 		}else{
 			youtubeUrl = jsonObject.youtubeUrl;	
@@ -197,6 +203,8 @@ function receiveMessageType(jsonObject){
 			$("#chatData").append('<p class="chatData"><span class="'+jsonObject.userColor+'">' +jsonObject.userName + '</span> : ' + jsonObject.msg + '</p>');			
 		}
 	}	
+	
+	$('#chatData').scrollTop($('#chatData')[0].scrollHeight)
 }
 
 

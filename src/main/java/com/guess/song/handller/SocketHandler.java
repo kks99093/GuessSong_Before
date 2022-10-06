@@ -183,6 +183,9 @@ public class SocketHandler extends TextWebSocketHandler{
 				break;
 			case "resultSong" :
 				int resultChk = resultSong(roomInfo, roomNumber);
+				if(jsonObject.get("answerToEnd") != null &&(Boolean)jsonObject.get("answerToEnd")) {
+					resultChk = 1;
+				}
 				jsonObject.put("resultChk", resultChk);
 				if(resultChk == 0) {
 					int resultCount = (int)roomInfo.get("resultCount");
@@ -436,6 +439,8 @@ public class SocketHandler extends TextWebSocketHandler{
 		}
 		
 		return resultChk;
+		
+		
 	}
 	
 	@SuppressWarnings("unchecked")
