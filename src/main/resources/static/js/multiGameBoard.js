@@ -115,6 +115,7 @@ wsOpen()
 //소켓 메세지 type별 처리
 function addSessionIdType(jsonObject){
 	$('#sessionId').val(jsonObject.sessionId)
+	$('#color').val(jsonObject.userColor)
 	$('.gameBoard_userInfo').append('<div class="userInfo_div" id="'+jsonObject.sessionId+'_div"> <div class="userName border"><span class="'+jsonObject.userColor+'">'+ userName +'</span></div> <div class="userPoint border"><span class="score_span" id="'+jsonObject.sessionId+'_score">0</span></div> </div>')
 	$('#currentSong').html('0');
 	$('#totalSong').html(jsonObject.totalSongNum);
@@ -144,6 +145,10 @@ function joinUserType(jsonObject){
 			$('.gameBoard_userInfo').append('<div class="userInfo_div" id="'+jsonObject.userList[i].sessionId+'_div"> <div class="userName"><span class="'+jsonObject.userList[i].userColor+'">'+ jsonObject.userList[i].userName +'</span></div> <div class="userPoint"><span class="score_span" id="'+jsonObject.userList[i].sessionId+'_score">0</span></div></div>')
 			$('.reader_mark').remove();
 			$('#'+jsonObject.reader+'_div').append('<div class="reader_mark">방장</div>')
+			if(jsonObject.userList[i].ready == 1){
+				$('#'+jsonObject.userList[i].sessionId+'_div').append('<div class="ready_div" id="'+jsonObject.userList[i].sessionId+'_ready_div">READY</div>')
+			}
+			
 		}
 		
 	}
@@ -234,19 +239,7 @@ function onYouTubeIframeAPIReady() {
 }
 //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
 
-function nextSong(){
-	player.stopVideo()
-	player.clearVideo()
-	$('#player').remove();
-	$('#youtubePlayer').append('<div id="player"></div>')
-	onYouTubeIframeAPIReady()
-	var payload = {
-			type : 'nextSongChk',
-			roomNumber : $('#roomNumber').val() 
-	}
-	ws.send(JSON.stringify(payload));
-	
-}
+
 
 function ready(){
 	$('#readyGame_div').remove();
@@ -257,7 +250,7 @@ function ready(){
 	}, 2000);
 	var payload = {
 			type : 'ready',
-			roomNumber : $('#roomNumber').val()
+			roomNumber : $('#roomNumber').val(),
 	}
 	ws.send(JSON.stringify(payload));
 }
@@ -330,6 +323,8 @@ function skipSongBtn(){
 	ws.send(JSON.stringify(payload));
 }
 
+
+// 얘를 없앨 생각
 function nextSongChk(jsonObject){
 	if(jsonObject.nextSongChk == 1){
 		$('#skip_div').css('display', 'none');
@@ -351,6 +346,42 @@ function nextSongChk(jsonObject){
 		},3000)	
 	}
 }
+
+function delayTime(){
+	let sleep = 0;
+	let color = $('#color').val();
+	let colorList = ["red", "blue", "green", "gray", "black", "brown", "purple", "yellow"];
+	
+	for(i = 0; i < colorList.length; i++){
+		if(color == colorList[i]){
+			sleep = i * 50;
+			break;
+		}
+	}
+	return sleep;
+}
+
+
+function nextSong(){
+	player.stopVideo()
+	player.clearVideo()
+	$('#player').remove();
+	$('#youtubePlayer').append('<div id="player"></div>')
+	onYouTubeIframeAPIReady()
+	let sleep = delayTime();
+	console.log(sleep);
+	setTimeout(()=>{
+		var payload = {
+			type : 'nextSongChk',
+			roomNumber : $('#roomNumber').val() 
+		}
+		ws.send(JSON.stringify(payload));
+	}, sleep)
+}
+
+
+
+
 
 function onPlayerStateChange(event){
 	if(event.data == 0){

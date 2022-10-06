@@ -7,7 +7,7 @@
 <script src="/js/modeSel.js"></script>
 <link rel="stylesheet" href="/css/modeSel.css">
 <meta charset="UTF-8">
-<title>Insert title here</title>
+<title>방 만들기</title>
 </head>
 <body>	
 	<div class="title_div">

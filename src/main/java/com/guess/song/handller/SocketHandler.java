@@ -134,9 +134,7 @@ public class SocketHandler extends TextWebSocketHandler{
 				break;
 			case "skipSong" :
 				int skipChk = skipSong(roomInfo, roomNumber);
-				
 				jsonObject.put("skipChk", skipChk);
-				
 				if(skipChk == 1) {
 					youtubeUrl = nextYoutubeUrl(roomInfo);
 					jsonObject.put("youtubeUrl", youtubeUrl);
@@ -149,7 +147,7 @@ public class SocketHandler extends TextWebSocketHandler{
 				
 				break;
 			case "ready":
-				userReady(roomNumber, 1);
+				userReady(roomNumber, 1, session.getId());
 				jsonObject.put("sessionId", session.getId());
 				break;
 			case "message" :
@@ -174,7 +172,7 @@ public class SocketHandler extends TextWebSocketHandler{
 				jsonObject.put("userName", userName);
 				break;
 			case "readyCencel" :
-				userReady(roomNumber, -1);
+				userReady(roomNumber, -1, session.getId());
 				jsonObject.put("sessionId", session.getId());
 				break;
 			case "nextSongChk" :
@@ -314,13 +312,16 @@ public class SocketHandler extends TextWebSocketHandler{
 			HashMap<String, Object> roomInfo = boardService.getRoomInfo(roomNumber,songNumber);
 
 			roomInfo.put("reader", session.getId()); // 만든사람의 session을 받아와서 roomInfo에 방장을 저장
+			roomInfo.put("nextSongChk", 0);
 			roomList.put(roomNumber, roomInfo); //위의 roomInfo를 roomList에 추가
 			userInfo.put("color", "red");
+			
 		}else {
 			userList = roomUserInfo.get(roomNumber);
 			String color = searchingColor(userList);
 			userInfo.put("color", color);
 		}
+		userInfo.put("ready", 0);
 		userInfo.put("session", session); //유저정보에 session저장
 		userInfo.put("userName", userName); //유저정보에 유저이름 저장
 		userInfo.put("score", 0);
@@ -342,9 +343,11 @@ public class SocketHandler extends TextWebSocketHandler{
 			HashMap<String, String> userInfo = new HashMap<>();
 			String userName = (String)((HashMap<String, Object>) userListParam.get(key)).get("userName");
 			String userColor = (String)((HashMap<String, Object>) userListParam.get(key)).get("color");
+			String ready = ""+(int)((HashMap<String, Object>) userListParam.get(key)).get("ready");
 			userInfo.put("userColor", userColor);
 			userInfo.put("sessionId", key);
 			userInfo.put("userName", userName);
+			userInfo.put("ready", ready);
 			userList.add(userInfo);
 		}
 		
@@ -447,9 +450,15 @@ public class SocketHandler extends TextWebSocketHandler{
 		
 	}
 	
-	public void userReady(String roomNumber, int count) {
+	@SuppressWarnings("unchecked")
+	public void userReady(String roomNumber, int count, String sessionId) {
 		int readyHead = (int) roomList.get(roomNumber).get("ready") + count;
 		roomList.get(roomNumber).put("ready", readyHead);
+		if(count == -1) {
+			((HashMap<String, Object>)roomUserInfo.get(roomNumber).get(sessionId)).put("ready", 0);
+		}else {
+			((HashMap<String, Object>)roomUserInfo.get(roomNumber).get(sessionId)).put("ready", 1);
+		}
 		System.out.println(readyHead);
 
 	}
@@ -518,13 +527,7 @@ public class SocketHandler extends TextWebSocketHandler{
 	public int nextSongChk(String roomNumber) {
 		int nextSongChk = 0;
 		HashMap<String, Object> roomInfo = roomList.get(roomNumber);
-		if(roomInfo.get("nextSongChk") == null) {
-			roomInfo.put("nextSongChk", 1);
-			System.out.println("nextSong = null");
-		}else{
-			roomInfo.put("nextSongChk", (int)roomInfo.get("nextSongChk") + 1);
-			System.out.println("nextSong + 1");
-		}
+		roomInfo.put("nextSongChk", (int)roomInfo.get("nextSongChk") + 1);
 		
 		if((int)roomInfo.get("nextSongChk") == roomUserInfo.get(roomNumber).size()) {
 			int currentSong = (int)roomInfo.get("currentSong");
@@ -532,7 +535,6 @@ public class SocketHandler extends TextWebSocketHandler{
 			nextSongChk = 1;
 			roomInfo.put("nextSongChk", 0);
 		}
-		System.out.println("nextSongChk : " + nextSongChk + ", amount : " + (int)roomInfo.get("nextSongChk"));
 		return nextSongChk;
 	}
 	
