@@ -123,6 +123,12 @@ public class BoardService {
 	
 	public SongBoard selSongBoard(int songBoardPk) {
 		SongBoard songBoard = songBoardRep.findByBoardPk(songBoardPk);
+		for(SongInfo songInfo : songBoard.getSongInfoList()) {
+			System.out.println(songInfo.getYoutubeUrl());
+			String youtubeUrl = "youtu.be/" + songInfo.getYoutubeUrl();
+			songInfo.setYoutubeUrl(youtubeUrl);
+		}
+		
 		return songBoard;
 		
 	}

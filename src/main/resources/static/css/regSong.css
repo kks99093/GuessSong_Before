@@ -116,7 +116,7 @@ section{
 	border-radius: 5px;
 }
 
-.remove_btn:hober{
+.remove_btn:hover{
 	background-color : #85DCFF;
 	cursor: pointer;
 }
