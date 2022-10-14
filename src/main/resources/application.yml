@@ -1,5 +1,5 @@
 server:
-  port: 8090
+  port: 8080
   servlet:
     context-path: /
     encoding:
@@ -21,8 +21,10 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/guesssong?serverTimezone=Asia/Seoul
-    username: root
-    password: root1234
+    #username: root
+    #password: root1234
+    username: admin
+    password: admin1234
   jpa:
     open-in-view: true
     hibernate:

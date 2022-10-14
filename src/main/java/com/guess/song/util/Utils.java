@@ -1,6 +1,7 @@
 package com.guess.song.util;
 
 import java.io.File;
+import java.net.URL;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
@@ -17,8 +18,10 @@ public class Utils {
 	
 	public static String fileUpload(RestFile restFile, HttpServletRequest request) {
 		String saveFileNm = "";
-		String rPath = request.getServletContext().getRealPath("/");
-		String path =rPath + "upload/songBoard/";
+//		String rPath = request.getServletContext().getRealPath("/");
+//		String path =rPath + "upload/songBoard/";
+		//String path ="C:/upload/songBoard/";
+		String path ="/home/ubuntu/apps/upload/songBoard/";
 		File dir = new File(path);
 		if(!dir.exists()) {
 			dir.mkdirs();

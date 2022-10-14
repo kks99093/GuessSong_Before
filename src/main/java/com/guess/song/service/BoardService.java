@@ -235,6 +235,8 @@ public class BoardService {
 				e.printStackTrace();
 				result = 0;
 			}
+		}else {
+			result =1;
 		}
 		
 		return result;

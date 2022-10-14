@@ -12,14 +12,14 @@ import com.guess.song.model.entity.SongInfo;
 @Repository
 public interface SongInfoRepository extends JpaRepository<SongInfo, Integer> {
 	
-	@Query(nativeQuery = true, value=" SELECT * FROM songInfo ")
+	@Query(nativeQuery = true, value=" SELECT * FROM SongInfo ")
 	List<SongInfo> findBySongList();
 	
-	@Query(nativeQuery = true, value=" SELECT * FROM songInfo WHERE songBoard_boardPk = ?")
+	@Query(nativeQuery = true, value=" SELECT * FROM SongInfo WHERE SongBoard_boardPk = ?")
 	List<SongInfo> findByBoardPk(int boardPk);
 	
 	
-	@Query(nativeQuery = true, value=" SELECT * FROM songInfo WHERE songBoard_boardPk = ? limit 1 ")
+	@Query(nativeQuery = true, value=" SELECT * FROM SongInfo WHERE SongBoard_boardPk = ? limit 1 ")
 	SongInfo findBySongBoardPkLimit1(int boardPk);
 	
 

@@ -464,7 +464,6 @@ public class SocketHandler extends TextWebSocketHandler{
 		}else {
 			((HashMap<String, Object>)roomUserInfo.get(roomNumber).get(sessionId)).put("ready", 1);
 		}
-		System.out.println(readyHead);
 
 	}
 	
@@ -490,7 +489,9 @@ public class SocketHandler extends TextWebSocketHandler{
 		int currentSong = (int)roomInfo.get("currentSong");
 		if(songList.get(currentSong).getAnswer() != null) { //정답칸이 비어있다 => 이미 정답자가 나왔다는 뜻이므로 정답체크 할 필요가 없음
 			String answer = songList.get(currentSong).getAnswer().replaceAll("\\s", ""); //정답
+			answer = answer.toLowerCase();
 			userMsg = userMsg.replaceAll("\\s", ""); //공백 제거한 msg
+			userMsg = userMsg.toLowerCase();
 			if(answer.equals(userMsg)) {
 				answerChk = 1; //정답일경우 answerChk에 1을 넣어서 리턴, 오답일경우 0임					
 				songList.get(currentSong).setAnswer(null); //정답자가 중복해서 나오지않게 정답칸을 바로 비워줌
