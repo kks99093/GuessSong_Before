@@ -38,6 +38,13 @@ body{
 	border-radius: 25px;
 }
 
+.imp_notice{
+	color : #ff0000;
+	font-weight: bold;
+	font-size: 20px;
+	
+}
+
 .startGame_div:hover{
 	cursor : pointer;
 }

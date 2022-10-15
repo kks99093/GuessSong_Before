@@ -28,6 +28,8 @@
 			</div>
 			<div class="gameBoard_notice">
 				<h3>안내사항</h3>
+				<span class="imp_notice">※노래는 유튜브를 통해 재생됩니다.</span><br>
+				<span class="imp_notice">노래가 나오지 않을시 유튜브가 음소거 되어있나 확인해 주세요</span><br><br>
 				<span>과반수 이상 넘기기를 누를 시 다음 노래로 넘어갑니다.</span><br>
 				<span>정답을 맞췄을 경우 10초후 자동으로 다음 노래로 넘어 갑니다.</span><br>
 				<span>(그전에 바로 넘기려면 넘기기를 누르세요)</span>
