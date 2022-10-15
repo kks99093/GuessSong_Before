@@ -18,13 +18,22 @@
 			<div class="skipSong_div" id="result_div"><span id="skip_span">결과창 보기 <span id="result_count_span"></span></span></div>
 			<div id="songHint_div"><span></span></div>
 		</div>
-		<div class="gameBoard_chat">
-			<div class="chatOutput_div border" id="chatData"></div>
-			<div class="chatInput_div">
-				<input type="text" class="chatInput_input" id="chatInput"> 
-				<span class="chat_submit" id="chat_submit">전송</span>
+		<div class="gameBoard_main">
+			<div class="gameBoard_chat">
+				<div class="chatOutput_div border" id="chatData"></div>
+				<div class="chatInput_div">
+					<input type="text" class="chatInput_input" id="chatInput"> 
+					<span class="chat_submit" id="chat_submit">전송</span>
+				</div>
+			</div>
+			<div class="gameBoard_notice">
+				<h3>안내사항</h3>
+				<span>과반수 이상 넘기기를 누를 시 다음 노래로 넘어갑니다.</span><br>
+				<span>정답을 맞췄을 경우 10초후 자동으로 다음 노래로 넘어 갑니다.</span><br>
+				<span>(그전에 바로 넘기려면 넘기기를 누르세요)</span>
 			</div>
 		</div>
+		
 		<div class="songListNum_div">
 			<span>남은 곡 : </span><span id="currentSong">&nbsp;</span>&nbsp;/&nbsp;<span id="totalSong">&nbsp;</span>
 		</div>

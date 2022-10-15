@@ -2,7 +2,7 @@
  * 
  */
 let modeSel = 2;
-const regTypeUserName = /^[가-힣a-zA-z\s]{1,6}$/;
+const regTypeUserName = /^[가-힣a-zA-z\s0-9]{1,6}$/;
 const regTypeTitle = /^.{3,30}$/;
  $(document).ready(function(){
 	
