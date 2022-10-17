@@ -9,7 +9,7 @@
 <meta charset="UTF-8">
 <title>노래 맞추기</title>
 </head>
-<body>
+<body oncontextmenu="return false" onselect="return false">
 
 <div class="gameBoard_div">
 	<div class="gameBoard_container">
@@ -26,10 +26,10 @@
 					<span class="chat_submit" id="chat_submit">전송</span>
 				</div>
 			</div>
+			<div class="gameBoard_songList" id="before_songList">
+			</div>
 			<div class="gameBoard_notice">
 				<h3>안내사항</h3>
-				<span class="imp_notice">※노래는 유튜브를 통해 재생됩니다.</span><br>
-				<span class="imp_notice">노래가 나오지 않을시 유튜브가 음소거 되어있나 확인해 주세요</span><br><br>
 				<span>정답은 공백, 소문자, 대문자 상관없이 입력 가능합니다.</span><br>
 				<span>(Good Boy => gOo D b oY  라고 입력해도 정답으로 인식합니다.)</span><br>
 				<span>과반수 이상 넘기기를 누를 시 다음 노래로 넘어갑니다.</span><br>
@@ -38,8 +38,13 @@
 			</div>
 		</div>
 		
-		<div class="songListNum_div">
-			<span>남은 곡 : </span><span id="currentSong">&nbsp;</span>&nbsp;/&nbsp;<span id="totalSong">&nbsp;</span>
+		<div class="gameConf_div">
+			<div class="leftSongNum_div">
+				<span>남은 곡 : </span><span id="currentSong">&nbsp;</span>&nbsp;/&nbsp;<span id="totalSong">&nbsp;</span>
+			</div>
+			<div class="volumeControl_div">
+				<span> 볼륨 조절 : <input type="text" id="soundVolumeInput" value="0" readonly> <button id="soundVolumeBtn">볼륨 변경</button></span>
+			</div>
 		</div>
 		<div class="gameBoard_userInfo border">
 		</div>			

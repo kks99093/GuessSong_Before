@@ -12,6 +12,7 @@ let answerReady = '0';
 let gameStartChk = 0;
 let totalSongNum = 0;
 var nextSongTimer;
+let songNumber= 1;
 $(document).ready(function(){
 
 	//넘기기
@@ -30,8 +31,29 @@ $(document).ready(function(){
 	$('#result_home_btn').click(()=>{
 		location.href = '/board/main';
 	})
-})
+	
+	$('#soundVolumeInput').on('keyup', function(e) {
+	    this.value = this.value.replace(/\D/g, '');
+	    if(this.value > 100){
+			this.value = 100;
+		}else if(this.value < 0){
+			this.value = 0;
+		}
+	    
+		if(e.keyCode == 13){
+			let soundVolume = $('#soundVolumeInput').val();
+			player.setVolume(soundVolume);
+		}
+	});
+	
+	
+	$('#soundVolumeBtn').click(()=>{
+		let soundVolume = $('#soundVolumeInput').val()
+		player.setVolume(soundVolume);
+	})
 
+
+})
 
 
 function wsOpen(){
@@ -85,12 +107,12 @@ function wsEvt() {
 			
 		}
 	}
-
-	document.addEventListener("keypress", function(e){
+	
+	$('#chatInput').keypress((e)=>{
 		if(e.keyCode == 13){ //enter press
 			send();
 		}
-	});
+	})
 }
 
 
@@ -132,6 +154,7 @@ function addSessionIdType(jsonObject){
 	tag.src = "https://www.youtube.com/iframe_api";
 	var firstScriptTag = document.getElementsByTagName('script')[0];
 	firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+	
 }
 
 function joinUserType(jsonObject){
@@ -175,6 +198,8 @@ function receiveMessageType(jsonObject){
 		answerReady = '0';
 		$("#chatData").append('<p class="answerMsg"> 정답 - <span class="'+jsonObject.userColor+'">'+jsonObject.userName+'</span> : ' + jsonObject.msg + "</p>");
 		$('#'+jsonObject.sessionId+'_score').html(''+jsonObject.score+'');
+		$('#before_songList').append('<p><span>'+songNumber +'. '+ jsonObject.beforeAnswer+'</span></p>');
+		songNumber++
 		//10초후 다음노래
 		if(jsonObject.youtubeUrl == "" || jsonObject.youtubeUrl == null || jsonObject.youtubeUrl == undefined){
 			$('.gameBoard_songInfo').prepend('<div class="loading_div" id="loading_div"><span class="loading_span">곧 게임이 종료됩니다. !!!</span></div>');
@@ -204,7 +229,8 @@ function receiveMessageType(jsonObject){
 		}
 	}	
 	
-	$('#chatData').scrollTop($('#chatData')[0].scrollHeight)
+	$('#chatData').scrollTop($('#chatData')[0].scrollHeight);
+	$('#before_songList').scrollTop($('#before_songList')[0].scrollHeight);
 }
 
 
@@ -212,10 +238,16 @@ function receiveMessageType(jsonObject){
 function skipSong(jsonObject){
 	if(jsonObject.skipChk == 1){
 		clearTimeout(nextSongTimer)
-		answerReady = 0;
 		youtubeUrl = jsonObject.youtubeUrl;
 		$('#skipCount_div').css('display','none')
 		$('#skip_count_span').html('');
+		if(answerReady == '1'){
+			$('#before_songList').append('<p><span>'+songNumber +'. '+ jsonObject.beforeAnswer+'</span></p>');
+			$('#before_songList').scrollTop($('#before_songList')[0].scrollHeight)
+			songNumber++
+			answerReady = '0';
+		}
+		
 		nextSong();
 	}else if(jsonObject.skipChk == 0){
 		$('#skip_count_span').html(" : " + jsonObject.skipCount);
@@ -244,6 +276,7 @@ function onYouTubeIframeAPIReady() {
 			'onStateChange' : onPlayerStateChange
 		}
 	});
+	
 }
 //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
 
@@ -311,6 +344,10 @@ function gameStartType(jsonObject){
 			$('#loading_div').remove();
 			$('#skip_div').css('display', 'flex');
 			answerReady = '1';
+			let soundVolume = player.getVolume();
+			$('#soundVolumeInput').attr('readonly',false);
+			$('#soundVolumeInput').val(soundVolume);
+			player.unMute();
 			player.playVideo();
 		},3000)		
 	}else{
@@ -350,6 +387,7 @@ function nextSongChk(jsonObject){
 			$('#loading_div').remove();
 			
 			answerReady = '1';
+			player.unMute();
 			player.playVideo();
 		},3000)	
 	}
@@ -377,7 +415,6 @@ function nextSong(){
 	$('#youtubePlayer').append('<div id="player"></div>')
 	onYouTubeIframeAPIReady()
 	let sleep = delayTime();
-	console.log(sleep);
 	setTimeout(()=>{
 		var payload = {
 			type : 'nextSongChk',
@@ -416,28 +453,38 @@ function resultSong(jsonObject){
 
 function gameEnd(jsonObject){
 	clearTimeout(nextSongTimer)
-	for(i = 0; i < jsonObject.userList.length; i++){
-		for(j = i+1; j <jsonObject.userList.length; j++){
-			if(jsonObject.userList[j].score > jsonObject.userList[i].score){
-				let userListTemp = jsonObject.userList[i];
-				jsonObject.userList[i] = jsonObject.userList[j];
-				jsonObject.userList[j] = userListTemp; 
-			}	
+	if(answerReady == '1'){
+		$('#before_songList').append('<p><span>'+songNumber +'. '+ jsonObject.beforeAnswer+'</span></p>');
+		$('#before_songList').scrollTop($('#before_songList')[0].scrollHeight)
+		songNumber++
+		answerReady = '0';
+		$('.gameBoard_songInfo').prepend('<div class="loading_div" id="loading_div"><span class="loading_span">곧 게임이 종료됩니다. !!!</span></div>');
+	}
+	$('#result_div').css('display', 'none');
+	setTimeout(()=>{
+			for(i = 0; i < jsonObject.userList.length; i++){
+			for(j = i+1; j <jsonObject.userList.length; j++){
+				if(jsonObject.userList[j].score > jsonObject.userList[i].score){
+					let userListTemp = jsonObject.userList[i];
+					jsonObject.userList[i] = jsonObject.userList[j];
+					jsonObject.userList[j] = userListTemp; 
+				}	
+			}
 		}
-	}
+		
+		$('.gameBoard_div').remove();
+		
+		for(i = 0 ; i < jsonObject.userList.length; i++){
+			let rank = i+1;
+			$('.result_table_tbody').append('<tr><td class="result_table_td num_td" >'+rank+'</td>  <td class="result_table_td name_td '+jsonObject.userList[i].color+'" >'+jsonObject.userList[i].userName+'</td>  <td class="result_table_td score_td" >'+jsonObject.userList[i].score+'</td></tr>')		
+		}
+		
+		$('.result_table_div').css('display', 'flex')
 	
-	$('.gameBoard_div').remove();
+	}, 2000)
 	
-	for(i = 0 ; i < jsonObject.userList.length; i++){
-		let rank = i+1;
-		$('.result_table_tbody').append('<tr><td class="result_table_td num_td" >'+rank+'</td>  <td class="result_table_td name_td '+jsonObject.userList[i].color+'" >'+jsonObject.userList[i].userName+'</td>  <td class="result_table_td score_td" >'+jsonObject.userList[i].score+'</td></tr>')		
-	}
-	
-	$('.result_table_div').css('display', 'flex')
-	
-	
+}
 
-	
-	
-	
+function playerVolume(volumeNum){
+	player.setVolume(volumeNum)
 }

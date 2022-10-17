@@ -32,10 +32,20 @@ body{
 	flex-grow : 1;
 	min-width: 600px;
 	text-align: center;
-	margin : 30px 100px;
+	margin : 10px 10px;
 	padding : 20px;
 	background-color : #FFFFFF;
 	border-radius: 25px;
+}
+
+.gameBoard_songList{
+	min-width : 200px;
+	text-align : center;
+	margin : 10px;
+	border-radius : 15px;
+	background-color : #FFFFFF;
+	height: 300px;
+	overflow: auto;
 }
 
 .imp_notice{
@@ -259,7 +269,8 @@ body{
 	font-size : 20px;
 }
 
-.songListNum_div{
+.gameConf_div{
+	display: flex;
 	margin: 20px;
     padding: 10px;
     font-size: 25px;
@@ -267,6 +278,17 @@ body{
     font-weight: bold;
     background: #FFFFFF;
     border-radius: 25px;
+    min-width : 1500px;
+}
+
+.leftSongNum_div{
+	margin-right: auto;
+    margin-left: 100px;
+}
+
+.volumeControl_div{
+	margin-left: auto;
+    margin-right: 100px;
 }
 
 

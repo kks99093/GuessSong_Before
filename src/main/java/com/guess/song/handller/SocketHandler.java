@@ -123,6 +123,7 @@ public class SocketHandler extends TextWebSocketHandler{
 		HashMap<String, Object> roomInfo = roomList.get(roomNumber);
 		HashMap<String, Object> userList = roomUserInfo.get(roomNumber);
 		int readyChk = 0;
+		String beforeAnswer = "";
 		
 		switch(type) {
 			case "gameStart" :
@@ -133,11 +134,13 @@ public class SocketHandler extends TextWebSocketHandler{
 				jsonObject.put("readyChk", readyChk);
 				break;
 			case "skipSong" :
+				beforeAnswer = getBeforeAnswer(roomInfo);
 				int skipChk = skipSong(roomInfo, roomNumber);
 				jsonObject.put("skipChk", skipChk);
 				if(skipChk == 1) {
 					youtubeUrl = nextYoutubeUrl(roomInfo);
 					jsonObject.put("youtubeUrl", youtubeUrl);
+					jsonObject.put("beforeAnswer", beforeAnswer);
 				}else if(skipChk == -1){
 					jsonObject.put("skipChk", skipChk);
 				}else {
@@ -154,9 +157,13 @@ public class SocketHandler extends TextWebSocketHandler{
 				String answerReady = (String)jsonObject.get("answerReady");
 				if(roomInfo.get("currentSong") != null && answerReady.equals("1")) {
 					String userMsg = ((String)jsonObject.get("msg")).replaceAll("\\s", "");
-					int answerChk = answerChk(roomInfo, userMsg, session.getId(), userList);
+					List<SongInfoDTO> songList = (List<SongInfoDTO>)roomInfo.get("songList");
+					int currentSong = (int)roomInfo.get("currentSong");
+					beforeAnswer = songList.get(currentSong).getAnswer();
+					int answerChk = answerChk(songList, currentSong, userMsg, session.getId(), userList);
 					if(answerChk == 1) {
 						int score = (int)((HashMap<String,Object>) userList.get(session.getId())).get("score");
+						jsonObject.put("beforeAnswer", beforeAnswer);
 						jsonObject.put("score", score);
 					}
 					String nextYoutubeUrl = nextYoutubeUrl(roomInfo);
@@ -191,8 +198,10 @@ public class SocketHandler extends TextWebSocketHandler{
 					int resultCount = (int)roomInfo.get("resultCount");
 					jsonObject.put("resultCount", resultCount);
 				}else {
+					beforeAnswer = getBeforeAnswer(roomInfo);
 					List<HashMap<String, String>> endUserList = endGameUserList(userList, roomNumber);
 					jsonObject.put("userList", endUserList);
+					jsonObject.put("beforeAnswer", beforeAnswer);
 				}
 				break;
 			
@@ -483,10 +492,8 @@ public class SocketHandler extends TextWebSocketHandler{
 	
 	//게임 시작한 후 보낸 메세지가 정답인지 확인하는 로직
 	@SuppressWarnings("unchecked")
-	public int answerChk(HashMap<String, Object> roomInfo, String userMsg, String sessionId, HashMap<String, Object> userList) {
+	public int answerChk(List<SongInfoDTO> songList, int currentSong, String userMsg, String sessionId, HashMap<String, Object> userList) {
 		int answerChk = 0;
-		List<SongInfoDTO> songList = (List<SongInfoDTO>)roomInfo.get("songList");
-		int currentSong = (int)roomInfo.get("currentSong");
 		if(songList.get(currentSong).getAnswer() != null) { //정답칸이 비어있다 => 이미 정답자가 나왔다는 뜻이므로 정답체크 할 필요가 없음
 			String answer = songList.get(currentSong).getAnswer().replaceAll("\\s", ""); //정답
 			answer = answer.toLowerCase();
@@ -498,7 +505,7 @@ public class SocketHandler extends TextWebSocketHandler{
 				int score = (int)((HashMap<String,Object>) userList.get(sessionId)).get("score");
 				score = score + 1;
 				((HashMap<String,Object>) userList.get(sessionId)).put("score", score);
-				//여기서 점수를 올리면되겠네
+				
 			}
 		}
 		return answerChk;
@@ -559,6 +566,15 @@ public class SocketHandler extends TextWebSocketHandler{
 			userList.add(userInfo);
 		}
 		return userList;
+	}
+	
+	
+	@SuppressWarnings("unchecked")
+	public String getBeforeAnswer(HashMap<String, Object> roomInfo) {
+		List<SongInfoDTO> songList = (List<SongInfoDTO>)roomInfo.get("songList");
+		int currentSong = (int)roomInfo.get("currentSong");
+		String beforeanswer = songList.get(currentSong).getAnswer();
+		return beforeanswer;
 	}
 	
 }
