@@ -6,14 +6,14 @@ import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 
-import com.guess.song.handller.SocketHandler;
+import com.guess.song.handller.SocketHandlerT;
 
 @Configuration
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer{
 	
 	@Autowired
-	SocketHandler socketHandler;
+	SocketHandlerT socketHandler;
 	
 	@Override
 	public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {

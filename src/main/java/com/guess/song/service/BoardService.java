@@ -22,6 +22,7 @@ import com.guess.song.model.param.GameRoomParam;
 import com.guess.song.model.param.SongBoardParam;
 import com.guess.song.model.param.SongInfoParam;
 import com.guess.song.model.param.UserInfoParam;
+import com.guess.song.model.vo.RoomInfo;
 import com.guess.song.repository.GameRoomRepository;
 import com.guess.song.repository.SongBoardRepository;
 import com.guess.song.repository.SongInfoRepository;
@@ -295,6 +296,17 @@ public class BoardService {
 		roomInfo.put("headCount", gameRoom.getHeadCount());
 		roomInfo.put("songList", songList);
 		roomInfo.put("ready", 1);
+		
+		return roomInfo;
+	}
+	
+	public RoomInfo getRoomInfoT(String roomNuberStr, int songNumber) {
+		int roomNumber = Integer.parseInt(roomNuberStr);
+		GameRoom gameRoom = gameRoomRep.findByRoomPk(roomNumber);
+		List<SongInfoDTO> songList = findSongList(songNumber);
+		RoomInfo roomInfo = new RoomInfo(gameRoom);
+		roomInfo.setReady(1);
+		roomInfo.setSongList(songList);		
 		
 		return roomInfo;
 	}

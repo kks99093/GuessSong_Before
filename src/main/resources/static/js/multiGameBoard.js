@@ -445,8 +445,10 @@ function resultSongBtn(){
 
 function resultSong(jsonObject){
 	if(jsonObject.resultChk == 1){
+		console.log("dd")
 		gameEnd(jsonObject);
 	}else{
+		console.log("ss")
 		$('#result_count_span').html(" : " + jsonObject.resultCount);
 	}
 }
