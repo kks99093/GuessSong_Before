@@ -71,7 +71,6 @@ function wsEvt() {
 		if(msg != null && msg.trim() != ''){
 			var jsonObject = JSON.parse(msg);
 			//ㅡㅡㅡㅡㅡㅡㅡ처음 접속시 id저장
-			
 			switch(jsonObject.type){
 				case 'sessionId':
 					addSessionIdType(jsonObject);
@@ -137,8 +136,8 @@ wsOpen()
 //소켓 메세지 type별 처리
 function addSessionIdType(jsonObject){
 	$('#sessionId').val(jsonObject.sessionId)
-	$('#color').val(jsonObject.userColor)
-	$('.gameBoard_userInfo').append('<div class="userInfo_div" id="'+jsonObject.sessionId+'_div"> <div class="userName border"><span class="'+jsonObject.userColor+'">'+ userName +'</span></div> <div class="userPoint border"><span class="score_span" id="'+jsonObject.sessionId+'_score">0</span></div> </div>')
+	$('#color').val(jsonObject.color)
+	$('.gameBoard_userInfo').append('<div class="userInfo_div" id="'+jsonObject.sessionId+'_div"> <div class="userName border"><span class="'+jsonObject.color+'">'+ userName +'</span></div> <div class="userPoint border"><span class="score_span" id="'+jsonObject.sessionId+'_score">0</span></div> </div>')
 	$('#currentSong').html('0');
 	$('#totalSong').html(jsonObject.totalSongNum);
 	totalSongNum = jsonObject.totalSongNum;
@@ -160,12 +159,12 @@ function addSessionIdType(jsonObject){
 function joinUserType(jsonObject){
 	if(jsonObject.user != null){
 		//입장한 사람의 정보를 추가
-		$('.gameBoard_userInfo').append('<div class="userInfo_div" id="'+jsonObject.user.sessionId+'_div"> <div class="userName"><span class="'+jsonObject.user.userColor+'">'+ jsonObject.user.userName +'</span></div> <div class="userPoint"><span class="score_span" id="'+jsonObject.user.sessionId+'_score">0</span></div> </div>')
-		$("#chatData").append('<p class="chatData alertMsg "><span class="'+jsonObject.userColor+'">' + jsonObject.user.userName + '</span> 님이 방에 입장하셨습니다.</p>');
+		$('.gameBoard_userInfo').append('<div class="userInfo_div" id="'+jsonObject.user.sessionId+'_div"> <div class="userName"><span class="'+jsonObject.user.color+'">'+ jsonObject.user.userName +'</span></div> <div class="userPoint"><span class="score_span" id="'+jsonObject.user.sessionId+'_score">0</span></div> </div>')
+		$("#chatData").append('<p class="chatData alertMsg "><span class="'+jsonObject.color+'">' + jsonObject.user.userName + '</span> 님이 방에 입장하셨습니다.</p>');
 	}else{
 		//다른사람정보를 추가
 		for(i = 0; i < jsonObject.userList.length; i++){
-			$('.gameBoard_userInfo').append('<div class="userInfo_div" id="'+jsonObject.userList[i].sessionId+'_div"> <div class="userName"><span class="'+jsonObject.userList[i].userColor+'">'+ jsonObject.userList[i].userName +'</span></div> <div class="userPoint"><span class="score_span" id="'+jsonObject.userList[i].sessionId+'_score">0</span></div></div>')
+			$('.gameBoard_userInfo').append('<div class="userInfo_div" id="'+jsonObject.userList[i].sessionId+'_div"> <div class="userName"><span class="'+jsonObject.userList[i].color+'">'+ jsonObject.userList[i].userName +'</span></div> <div class="userPoint"><span class="score_span" id="'+jsonObject.userList[i].sessionId+'_score">0</span></div></div>')
 			$('.reader_mark').remove();
 			$('#'+jsonObject.reader+'_div').append('<div class="reader_mark">방장</div>')
 			if(jsonObject.userList[i].ready == 1){
@@ -178,7 +177,7 @@ function joinUserType(jsonObject){
 }
 
 function leftUserType(jsonObject){
-	$("#chatData").append('<p class="chatData alertMsg"><span class="'+jsonObject.userColor+'">' + jsonObject.leftUser + '</span> 님이 방에서 나가셨습니다.</p>');
+	$("#chatData").append('<p class="chatData alertMsg"><span class="'+jsonObject.color+'">' + jsonObject.leftUser + '</span> 님이 방에서 나가셨습니다.</p>');
 	$('#'+jsonObject.sessionId+'_div').remove();
 	if(jsonObject.reader != null){
 		$('#'+jsonObject.reader+'_div').append('<div class="reader_mark">방장</div>')
@@ -196,7 +195,7 @@ function leftUserType(jsonObject){
 function receiveMessageType(jsonObject){
 	if(jsonObject.answerChk == 1){ //정답일 경우
 		answerReady = '0';
-		$("#chatData").append('<p class="answerMsg"> 정답 - <span class="'+jsonObject.userColor+'">'+jsonObject.userName+'</span> : ' + jsonObject.msg + "</p>");
+		$("#chatData").append('<p class="answerMsg"> 정답 - <span class="'+jsonObject.color+'">'+jsonObject.userName+'</span> : ' + jsonObject.msg + "</p>");
 		$('#'+jsonObject.sessionId+'_score').html(''+jsonObject.score+'');
 		$('#before_songList').append('<p><span>'+songNumber +'. '+ jsonObject.beforeAnswer+'</span></p>');
 		songNumber++
@@ -223,9 +222,9 @@ function receiveMessageType(jsonObject){
 	}else{ //정답이 아닐 경우
 		let sessionId = $('#sessionId').val();
 		if(jsonObject.sessionId == sessionId){
-			$("#chatData").append('<p class="my_chat chatData"><span class="'+jsonObject.userColor+'">' +jsonObject.userName + '</span> : ' + jsonObject.msg + '</p>');
+			$("#chatData").append('<p class="my_chat chatData"><span class="'+jsonObject.color+'">' +jsonObject.userName + '</span> : ' + jsonObject.msg + '</p>');
 		}else{
-			$("#chatData").append('<p class="chatData"><span class="'+jsonObject.userColor+'">' +jsonObject.userName + '</span> : ' + jsonObject.msg + '</p>');			
+			$("#chatData").append('<p class="chatData"><span class="'+jsonObject.color+'">' +jsonObject.userName + '</span> : ' + jsonObject.msg + '</p>');			
 		}
 	}	
 	

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,11 +15,13 @@ import org.springframework.web.socket.WebSocketSession;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.guess.song.handller.SocketHandlerT;
+import com.guess.song.handller.SocketHandler;
 import com.guess.song.model.dto.SongInfoDTO;
 import com.guess.song.model.vo.RoomInfo;
 import com.guess.song.model.vo.RoomUserInfo;
 import com.guess.song.service.BoardService;
+
+import net.bytebuddy.build.HashCodeAndEqualsPlugin;
 
 @Component
 public class SocketUtils {
@@ -26,6 +29,7 @@ public class SocketUtils {
 	@Autowired
 	private BoardService boardService;
 	
+	private ObjectMapper mapper = new ObjectMapper();
 	public boolean roomChk(String roomNumber, HashMap<String, RoomInfo> roomList) {
 		boolean flag = false;
 		int roomSize = roomList.size();
@@ -43,17 +47,17 @@ public class SocketUtils {
 		//HashMap<String, RoomUserInfo> userList = new HashMap<String, RoomUserInfo>();
 		if(songNumber != 0) { //songNumber가 0이 아니면 방 생성
 			RoomInfo roomInfo = new RoomInfo();
-			SocketHandlerT.roomList.put(roomNumberStr, roomInfo);
+			SocketHandler.roomList.put(roomNumberStr, roomInfo);
 			HashMap<String, RoomUserInfo> userList = new HashMap<String, RoomUserInfo>();
-			SocketHandlerT.roomList.get(roomNumberStr).setUserList(userList);			
+			SocketHandler.roomList.get(roomNumberStr).setUserList(userList);			
 			roomInfo = boardService.getRoomInfoT(roomNumberStr,songNumber); // 방정보 기본셋팅
 			roomInfo.setReader(session.getId());
 			roomInfo.setNextSongChk(0);
 			roomInfo.setUserList(userList);
-			SocketHandlerT.roomList.put(roomNumberStr, roomInfo);
+			SocketHandler.roomList.put(roomNumberStr, roomInfo);
 			roomUserInfo.setColor("red");			
 		}else {
-			HashMap<String, RoomUserInfo> userList = SocketHandlerT.getUserList(roomNumberStr);
+			HashMap<String, RoomUserInfo> userList = SocketHandler.getUserList(roomNumberStr);
 			String color = searchingColor(userList);
 			roomUserInfo.setColor(color);
 		}
@@ -61,9 +65,9 @@ public class SocketUtils {
 		roomUserInfo.setSession(session);
 		roomUserInfo.setUserName(userName);
 		roomUserInfo.setScore(0);
-		SocketHandlerT.roomList.get(roomNumberStr).getUserList().put(session.getId(), roomUserInfo);
+		SocketHandler.roomList.get(roomNumberStr).getUserList().put(session.getId(), roomUserInfo);
 		//유저수 갱신
-		int headCount = SocketHandlerT.getUserList(roomNumberStr).size();		
+		int headCount = SocketHandler.getUserList(roomNumberStr).size();		
 		boardService.updHeadCount(roomNumberStr, headCount, null);
 	}
 	
@@ -91,7 +95,8 @@ public class SocketUtils {
 	
 	@SuppressWarnings("unchecked")
 	public void sendUserList(WebSocketSession session, HashMap<String, RoomUserInfo> userListParam, String roomNumber) {
-		List<RoomUserInfo> userList = new ArrayList<RoomUserInfo>();
+		List<HashMap<String, String>> userList = new ArrayList<HashMap<String, String>>();
+		
 		for(String key : userListParam.keySet()) {
 			RoomUserInfo roomUserInfo = new RoomUserInfo();
 			String userName = userListParam.get(key).getUserName();
@@ -101,10 +106,18 @@ public class SocketUtils {
 			roomUserInfo.setColor(userColor);
 			roomUserInfo.setReady(ready);
 			roomUserInfo.setSessionId(key);
-			userList.add(roomUserInfo);
+			
+			try {
+				HashMap<String, String> userInfoMap = (HashMap<String, String>) mapper.convertValue(roomUserInfo, Map.class);
+				userList.add(userInfoMap);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 		}
 		
-		String reader = SocketHandlerT.getRoomInfo(roomNumber).getReader();
+		String reader = SocketHandler.getRoomInfo(roomNumber).getReader();
 		JSONObject jsonObject = new JSONObject();
 		jsonObject.put("type", "join");
 		jsonObject.put("reader", reader);
@@ -131,8 +144,16 @@ public class SocketUtils {
 		
 		JSONObject jsonObject = new JSONObject();
 		jsonObject.put("type", "join");
-		jsonObject.put("user", roomUserInfo);
-		jsonObject.put("userColor", userColor);
+		try {
+			HashMap<String, String> mapUserInfo = (HashMap<String, String>) mapper.convertValue(roomUserInfo, Map.class);
+			jsonObject.put("user", mapUserInfo);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		
+		
+		
+		jsonObject.put("color", userColor);
 		for(String key : userList.keySet()) {
 			if(key.equals(session.getId())) {
 				continue;
@@ -166,10 +187,10 @@ public class SocketUtils {
 		}else {
 			HashMap<String, RoomUserInfo> userList = roomInfo.getUserList();			
 			if(roomInfo.getSkipCount() == null) {
-				SocketHandlerT.roomList.get(roomNumber).setSkipCount(1);
+				SocketHandler.roomList.get(roomNumber).setSkipCount(1);
 			}else {
 				int skipCount = roomInfo.getSkipCount();
-				SocketHandlerT.roomList.get(roomNumber).setSkipCount(skipCount + 1);
+				SocketHandler.roomList.get(roomNumber).setSkipCount(skipCount + 1);
 			}
 			int skipCount = roomInfo.getSkipCount();
 			if(skipCount>(userList.size()/2)) {
@@ -200,16 +221,15 @@ public class SocketUtils {
 		int resultChk = 0;
 		HashMap<String, RoomUserInfo> userList = roomInfo.getUserList();
 		if(roomInfo.getResultCount() == null) {
-			SocketHandlerT.roomList.get(roomNumber).setResultCount(1);
+			SocketHandler.roomList.get(roomNumber).setResultCount(1);
 		}else {
 			int resultCount = roomInfo.getResultCount();
-			SocketHandlerT.roomList.get(roomNumber).setResultCount(resultCount + 1);
+			SocketHandler.roomList.get(roomNumber).setResultCount(resultCount + 1);
 		}
 		int resultCount = roomInfo.getResultCount();		
 		if(resultCount>(userList.size()/2)) {
 			resultChk = 1;
 		}
-		System.out.println("결과 쳌 " + resultChk);
 		return resultChk;
 		
 		
@@ -236,18 +256,27 @@ public class SocketUtils {
 		return answerChk;
 	}
 	
-	
+	@SuppressWarnings("unchecked")
 	public List<HashMap<String, String>> endGameUserList(HashMap<String, RoomUserInfo> userListParam, String roomNumber){
 		List<HashMap<String, String>> userList = new ArrayList<HashMap<String, String>>();
+		
 		for(String key : userListParam.keySet()) {
-			HashMap<String, String> userInfo = new HashMap<String, String>();
+			RoomUserInfo roomUserInfo = new RoomUserInfo();
 			String userName = userListParam.get(key).getUserName();			
 			String color = userListParam.get(key).getColor();
-			String score = userListParam.get(key).getScore()+"";
-			userInfo.put("color", color);
-			userInfo.put("score", score);
-			userInfo.put("userName", userName);
-			userList.add(userInfo);
+			int score = userListParam.get(key).getScore();
+			roomUserInfo.setColor(color);
+			roomUserInfo.setScore(score);
+			roomUserInfo.setUserName(userName);
+			try {
+								
+				HashMap<String, String> mapUserInfo = (HashMap<String, String>) mapper.convertValue(roomUserInfo, Map.class);
+				userList.add(mapUserInfo);
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
+
+			
 			
 			
 		}

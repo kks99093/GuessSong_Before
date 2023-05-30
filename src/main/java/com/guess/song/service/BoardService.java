@@ -23,6 +23,7 @@ import com.guess.song.model.param.SongBoardParam;
 import com.guess.song.model.param.SongInfoParam;
 import com.guess.song.model.param.UserInfoParam;
 import com.guess.song.model.vo.RoomInfo;
+import com.guess.song.model.vo.RoomUserInfo;
 import com.guess.song.repository.GameRoomRepository;
 import com.guess.song.repository.SongBoardRepository;
 import com.guess.song.repository.SongInfoRepository;
@@ -256,7 +257,6 @@ public class BoardService {
 	}
 	
 	//게임방 비밀번호, 인원, 중복아이디 체크
-	@SuppressWarnings("unchecked")
 	public int gameRoomPassChk(GameRoomParam gameRoomParam) {
 		int result = 1;
 		GameRoom gameRoom = gameRoomRep.findByRoomPk(gameRoomParam.getRoomPk());
@@ -274,10 +274,9 @@ public class BoardService {
 		
 		String roomNumber = gameRoomParam.getRoomPk()+"";
 		String userNameParam = gameRoomParam.getUserName();
-		HashMap<String, Object> userList = SocketHandler.getUserList(roomNumber);
+		HashMap<String, RoomUserInfo> userList = SocketHandler.getUserList(roomNumber);
 		for(String key : userList.keySet()) {
-			System.out.println(userList.get(key));
-			String userName = (String) ((HashMap<String, Object>)userList.get(key)).get("userName");
+			String userName = userList.get(key).getUserName();			
 			if(userNameParam.equals(userName)) {
 				result = 0; // 중복된 아이디가 있음
 				break;
