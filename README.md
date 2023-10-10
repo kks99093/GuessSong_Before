@@ -1,7 +1,7 @@
 ## GuessSong
 #### 2022. 9. 22 ~ 2022. 10. 06 
 #### WebSocket을 이용해서 만든 노래맞추기 게임 입니다.
-##### <a href="http://www.guesssong.shop" target="_blank">구경하러 가기</a>
+##### <a href="http://www.guesssong.site" target="_blank">구경하러 가기</a>
 
 + 메인 화면
 <img src="https://user-images.githubusercontent.com/66832664/194889772-817c0ea8-5841-4ef2-88d2-223183a64a31.jpg" width="800px">
