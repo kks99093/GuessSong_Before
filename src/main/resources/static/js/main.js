@@ -1,122 +1,58 @@
 /**
  * 
  */
- 
- $(document).ready(function(){
-		
-		$('.drop_menu').click(function(){
-			let boardPk = $(this).attr("param1")
-			let displayStatus = $('#drop_menu_board'+boardPk).css('display')
-			if(displayStatus === 'none'){
-				$('#drop_menu_board'+boardPk).css('display', 'block')
-			}else{
-				$('#drop_menu_board'+boardPk).css('display', 'none')
-			}
-		})
-		
-		$('#joinMultiGame').click(function(){
-			
-				location.href = "/board/gameList";	
-			
-			
-		})
-		
-		$('#regSong_btn').click(function(){
-				location.href = "/board/regSong";
-		})
-		
-		// 게시판 수정
-		$('.update_board_div').click(function(){
-			let boardPk = $(this).attr("param1");
-			let password = prompt('비밀번호');
-			
-			let data = {
-					boardPk : boardPk,
-					password : password
-			}
-			
-			$.ajax({
-				type : "POST",
-				url : "/rest/boardPassChk",
-				data : JSON.stringify(data),
-				contentType : "application/json; charset=utf-8",
-				dataType : "json"
-			}).done(function(resp){
-				if(resp == 1){
-					location.href = '/board/regSong?boardPk='+boardPk;
-				}else{
-					alert('비밀번호가 틀렸습니다.')
-				}
-			})
-		})
-		
-		$('.delete_board_div').click(function(){
-			let boardPk = $(this).attr("param1");
-			let password = prompt('비밀번호');
-			let data = {
-					boardPk : boardPk,
-					password : password
-			}
-			
-			
-			$.ajax({
-				type : "POST",
-				url : "/rest/boardPassChk",
-				data : JSON.stringify(data),
-				contentType : "application/json; charset=utf-8",
-				dataType : "json"
-			}).done(function(resp){
-				if(resp == 1){
-					if(confirm('정말 삭제 하시겠습니까?')){
-						let boardPk = $(this).attr("param1")
-						$.ajax({
-							type: "POST",
-							url : "/rest/boardDel",
-							data : JSON.stringify(data),
-							contentType : "application/json; charset=utf-8",
-							dataType: "json"
-						}).done(function(delResp){
-							if(delResp == 1){
-								location.reload();	
-							}else{
-								alert('삭제 할 수 없습니다. 관리자에게 문의 하세요');
-							}
-							
-						})
-					}
-				}else{
-					alert('비밀번호가 틀렸습니다.')
-				}
-			})
-			
-			
 
+const regTypeUserName = /^[가-힣a-zA-z\s0-9]{1,6}$/;
+const regTypeTitle = /^.{3,30}$/;
+//<input type="number" class="year_input" id="startYear" value="2000"> ~ <input type="number" class="year_input" id="endYear" value="2024">
+ $(document).ready(function(){
+	 for(let i = 1990; i < 2025; i++){
+		$('#startYear').append(`<option value="`+i+`">`+i+`</option>`);
+		$('#endYear').append(`<option value="`+i+`">`+i+`</option>`);	 
+	 }
+	 
+	 
+	 
+	$('#create_btn').click(function(){
+			let solo = $('#soloChk').is(':checked');
+			let startYear = $('#startYear').val();
+			let endYear = $('#endYear').val();
+			let songCnt = $('#songCnt').val();
 			
+			console.log(startYear + " , " + endYear + ", " + songCnt);
+			let userName = $('#userName').val();
+			userName = userName.trim();
+			let title = $('#title').val();
+			title = title.trim();
+			let password = $('#password').val();
+			password = password.trim();
+			/*
+			if(modeSel == 1){
+				$('#createRoomFrm').attr('action', '/board/soloGameBoard')
+				if(userName == null || userName == '' || !regTypeUserName.test(userName)){
+					alert('닉네임을 1~6글자로 입력해 주세요')
+					return;
+				}else{
+					$('#createRoomFrm').submit();
+				}				
+			}else if(modeSel == 2){
+				$('#createRoomFrm').attr('action', '/board/multiGameBoard')
+				if(userName == null || userName == '' || !regTypeUserName.test(userName)){
+					alert('닉네임을 1~6글자로 입력해 주세요')
+					return ;
+				}else if(title == null || title == '' || !regTypeTitle.test(title)){
+					alert('방제목을 3~30글자로 입력해 주세요')
+					return ;
+				}else{
+					$('#createRoomFrm').submit();
+				}
+			}else{
+				alert('모드를 선택해 주세요')
+				return;
+			}
+			*/
 		})
 		
 		
-		
-		
-		
-	})
-	
-	
-	function moveBoard(boardPk){
-		location.href = "/board/modeSel?boardPk="+boardPk;
-	}
-	
-	function pageMove(pageNumber){
-		location.href = "/board/main?page="+pageNumber;
-	}
-	
-	function searchBoard(){
-		let searchText = $('#searchText').val()
-		searchText = searchText.trim();
-		if(searchText.length > 20){
-			alert('검색은 20글자 이하로만 가능합니다.')
-		}else{
-			location.href = "/board/main?searchText="+searchText;	
-		}
-		
-	}
+})
 	

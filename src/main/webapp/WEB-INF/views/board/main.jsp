@@ -14,56 +14,70 @@
 </head>
 <body>
 <div class="container">
-	<div class="left_div">
-		<div class="regSong_div left_border" id="regSong_btn">
-			<span class="left_span" id="regSong_span">노래 등록</span>
-		</div>
-		<div class="joinMultiGame_div left_border" id="joinMultiGame">
-			<span class="left_span" id="joinMultiGame_span">게임 참여하기</span>
+	<div class="top_div">
+		<div class="regSong_div top_border" id="guessSong_btn">
+			<span class="top_span" id="guessSong_span">노래 맞추기</span>
 		</div>
 	</div>
 	
-	<div class="rigth_div">
-		<div class="search_div">
-			<input type="text" placeholder="노래 검색" name="searchText" id="searchText" value="${searchText == null ? '' : searchText }" onkeyup="if(window.event.keyCode==13){searchBoard()}"><span id="search_span" onclick="searchBoard()">검색</span>
+	<div class="bottom_div">
+		<div class="create_room_title">
+			<span>방 만들기</span>
 		</div>
-		<div class="songBoardList_div">
-			<c:forEach var="songBoard" items="${songBoardList.content }">
-			<div class="songBoard_div">
-				<div class="songBoard_img_div" id="songBoard_img_div" onclick="moveBoard(${songBoard.boardPk})">
-					<div id="board_img_div">
-						<c:choose>
-							<c:when test="${songBoard.img == null || songBoard.img == '' }">
-								<img src="/upload/default/headSet.png" width="200" height="200">
-							</c:when>
-							<c:otherwise>
-								<img src="/upload/songBoard/${songBoard.img}" width="200" height="200">
-							</c:otherwise>
-						</c:choose>
+		<div class="create_div">
+			<form method="post" id="createRoomFrm">
+				<div class="create_span">솔로 플레이 : <input type="checkbox" name="solo" class="check_box_input" id="soloChk"></div>
+				<div class="create_span">년도 : 
+				<select id="startYear" class="year_select">
+				</select>
+				 ~ 
+				<select id="endYear" class="year_select">
+				</select>
+				</div>
+				
+				<div class="create_span">장르 :
+					<select class="select_option">
+						<option>전체</option>
+						<option>아이돌</option>
+						<option>발라드</option>
+						<option>힙합</option>
+					</select> 
+				</div>
+				<div class="create_span"> 곡 수 :
+					<select class="songCnt" id="songCnt">
+						<option value="0">랜덤</option>
+						<option value="4">4</option>
+						<option value="16">16</option>
+						<option value="32">32</option>
+						<option value="64">64</option>
+						<option value="128">128</option>
+					</select>
+				</div>
+				<div class="multi_div">
+					<div class="create_span">닉네임 : <input class="create_input" type="text" id="userName" name="userName" ></div>				
+					<div class="create_span">제목 : <input class="create_input multi_input" type="text" id="title" name="title" ></div>
+					<div class="create_span">비밀번호 : <input placeholder="공백일 경우 비밀번호 없음" type="password" id="password" name="password" ></div>
+					<div class="create_span">최대인원 :
+					<select class="create_input" name="amount">
+						<option class="create_input ">1</option>
+						<option class="create_input">2</option>
+						<option class="create_input">3</option>
+						<option class="create_input">4</option>
+						<option class="create_input">5</option>
+						<option class="create_input">6</option>
+						<option class="create_input">7</option>
+						<option class="create_input">8</option>
+					</select> 
 					</div>
 				</div>
-				<div class="board_title_div">
-					<span class="board_title_span" onclick="moveBoard(${songBoard.boardPk})">${songBoard.title}</span>
-					<span class="drop_menu" param1="${songBoard.boardPk }">...</span>
-				</div>
-				<div class="drop_menu_board" id="drop_menu_board${songBoard.boardPk}">
-					<div class="update_board_div" param1="${songBoard.boardPk }">수정</div>
-					<div class="delete_board_div" param1="${songBoard.boardPk }">삭제</div>
-				</div>
-			</div>
-			</c:forEach>
-		</div>
-		<div class="page_div">
-			<ul>
-				<li class="${songBoardList.pageable.pageNumber == 0 ? 'disable_evt disable_cursor' : '' }" onclick="pageMove(${songBoardList.pageable.pageNumber-1})">이전</li>
-				<c:forEach begin="${startIdx+1}" end="${songBoardList.totalPages > startIdx+10 ? startIdx+10 : songBoardList.totalPages  }" varStatus="status">
-					<li class="${songBoardList.pageable.pageNumber == status.index-1 ? 'disable_evt disable_cursor' : '' }" onclick="pageMove(${status.index-1})">${status.index}</li>
-				</c:forEach>
-				<li class="${songBoardList.pageable.pageNumber == songBoardList.totalPages-1 ? 'disable_evt disable_cursor' : '' }" onclick="pageMove(${songBoardList.pageable.pageNumber+1})">다음</li>
-			</ul>
+				<input type="hidden" name="userRole" value="1">
+				<input type="hidden" name="boardPk" value="${songBoard.boardPk}" >
+				<input type="hidden" name="createRoom" value="1">
+				<div class="create_div"><span id="create_btn">만들기</span></div>
+			</form>
 		</div>
 	</div>
-</div>
+</div>	
 
 </body>
 </html>
