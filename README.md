@@ -1,6 +1,7 @@
 ## GuessSong
 #### 2022. 9. 22 ~ 2022. 10. 06 
 #### WebSocket을 이용해서 만든 노래맞추기 게임 입니다.
+# 리뉴얼 : https://github.com/kks99093/GuessSong_Renewal
 ##### <a href="http://www.guesssong.site" target="_blank">구경하러 가기</a>
 
 + 메인 화면
